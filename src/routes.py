@@ -30,3 +30,4 @@ def sendMessageToLlm(messages, model_name, client):
         messages=messages,
     )
     return response.choices[0].message.content
+
