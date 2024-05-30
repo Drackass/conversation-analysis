@@ -71,7 +71,7 @@ prompts = [
 You extract data and returns it in JSON format, according to provided JSON schema without responding directly to the conversation , from given email message.
 REMEMBER to return extracted data only from provided email message.
 
-**Objective**: To extract actionable insights from live chat interactions between a chatbot (genii) and a user ("You"), enabling the improvement of chatbot performance across various key metrics.
+**Objective**: To extract actionable insights from live chat interactions between a chatbot (Genii) and a user ("You"), enabling the improvement of chatbot performance across various key metrics.
 
 **Data Extraction Categories**:
 1. **Verbatim Analysis**:
