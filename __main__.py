@@ -10,7 +10,8 @@ from src.bcolors import bcolors
 from src.prompts import prompts
 from src.routes import getConversationById, getConversationsByProjectId, sendMessageToLlm
 from src.utils import extract_json_object
-from src.pages.projectConversations import projectConversationsPage
+from src.pages.projectConversations import projectConversationsTab
+from src.pages.conversation import conversationTab
 
 st.set_page_config(
     page_title="Tolk.ai • Conversation Analysis",
@@ -27,12 +28,12 @@ st.title('🔮 :violet[Tolk.ai] • Conversation Analysis')
 ProjectConversationsTab, ConversationTab, DatasetFileTab = st.tabs(["🤖 Project Conversations", "💬 Conversation", "📄 Dataset File"])
 
 with ProjectConversationsTab:
-    projectConversationsPage()
+    projectConversationsTab()
             
-
+()
 with ConversationTab:
-    st.header("Conversation Analysis")
-    projectId = st.text_input("Enter a ConversationId:", "e51255e3-2790-4ab7-964c-6f898f7e00f7")
+    conversationTab()
+    
 
 
 with DatasetFileTab:

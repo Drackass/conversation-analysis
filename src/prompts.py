@@ -354,11 +354,10 @@ The response should only include the JSON object with the analyzed values. The e
 
 ```json
 {
-   "issue_summary":({"icon":("📝"), "label":("Issue Summary"), "value":(string), "type":("info")}),
-    "conversation_objective":({"icon":("🎯"), "label":("Conversation Objective"), "value":(string), "type":("info")}),
-    "context_of_request":({"icon":("🔍"), "label":("Context of Request"), "value":(string), "type":("info")}),
-    "language_and_tone":({"icon":("🗣️"), "label":("Language and Tone"), "value":(string), "type":("info")}),
-    "keywords":({"icon":("🔑"), "label":("Keywords"), "value":([array of keywords strings]), "type":("info")}),   
+    "issue_summary":({"icon":("📝"), "label":("Issue Summary"), "value":(string), "type":("info")}),
+    "conversation_objective":({"icon":("🎯"), "label":("Conversation Objective"), "value":(string), "type":("success")}),
+    "context_of_request":({"icon":("🔍"), "label":("Context of Request"), "value":(string), "type":("warning")}),
+    "language_and_tone":({"icon":("🗣️"), "label":("Language and Tone"), "value":(string), "type":("error")}),
     "client_sentiment":({name:("Client Sentiment"), value:("positive"|"constructive"|"negative"|"neutral"),delta:(average number of satisfaction between -100 and 100)}),
     "proposed_solutions_relevance":({name:("Proposed Solutions Relevance"), value:("Very Poor"|"Poor"|"Fair"|"Good"|"Excellent"),delta:(average number of relevant solutions between -100 and 100)}),
     "solutions_adaptability":({name:("Solutions Adaptability"), value:("Very Poor"|"Poor"|"Fair"|"Good"|"Excellent"),delta:(average number of adapted solutions between -100 and 100)}),
@@ -366,8 +365,6 @@ The response should only include the JSON object with the analyzed values. The e
     "client_expectations":({name:("Client Expectations"), value:(integer between 0 and 100)}),
     "service_quality":({name:("Service Quality"), value:(integer between 0 and 100)}),
     "request_complexity_level":({name:("Request Complexity Level"), value:(integer between 0 and 100)}),
-
-
 }
 ```
 
