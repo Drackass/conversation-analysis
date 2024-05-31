@@ -107,12 +107,12 @@ if btnAnalyze:
     )
 
     conversationsAnalysis = []
-    with st.spinner(f'Fetching {conversationLimit[0] if ("Conversation Limit" in filters) else "all"} conversions {f'between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**' if ("Date Range" in filters) else ''} for project **{projectId}**'):
+    with st.spinner(f'Fetching {conversationLimit[0] if ("Conversation Limit" in filters) else "all"} conversions {f"between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**" if ("Date Range" in filters) else ""} for project **{projectId}**'):
         try:
             conversations = getConversationsByProjectId(projectId, params)
-            st.success(f'Fetched {len(conversations["data"]) if ("Conversation Limit" in filters) else "all"} conversions {f'between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**' if ("Date Range" in filters) else ''} for project **{projectId}** successfully', icon='✅')
+            st.success(f'Fetched {len(conversations["data"]) if ("Conversation Limit" in filters) else "all"} conversions {f"between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**" if ("Date Range" in filters) else ""} for project **{projectId}** successfully', icon='✅')
         except Exception as e:
-            st.error(f"❌ Error Fetching {conversationLimit[0] if ("Conversation Limit" in filters) else "all"} conversions {f'between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**' if ("Date Range" in filters) else ''} for project **{projectId}**: {e}")
+            st.error(f"❌ Error Fetching {conversationLimit[0] if ('Conversation Limit' in filters) else 'all'} conversions {f'between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**' if ('Date Range' in filters) else ''} for project **{projectId}**: {e}")
             st.stop()
     
 
