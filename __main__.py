@@ -1,11 +1,5 @@
-from io import StringIO
-from turtle import pd
-import openai
 import streamlit as st
-from src.azureOpenAiApiCredentials import azureOpenAiApiCredentials
-from src.prompts import prompts
-from src.routes import getConversationById, getConversationsByProjectId, sendMessageToLlm
-from src.utils import extract_json_object, getBoxes, getMetrics, getProgress
+
 
 st.set_page_config(
     page_title="Genii • Conversation Analysis",
