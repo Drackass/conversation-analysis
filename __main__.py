@@ -15,7 +15,7 @@ with st.sidebar:
     st.page_link("pages/datasetFile.py", label="Dataset File", icon="📄")
     st.page_link("pages/help.py", label="Help Center", icon="🛟")
 
-TOLKAI_LOGO = "Genii.svg"
+TOLKAI_LOGO = "enii.svg"
 st.logo(TOLKAI_LOGO)
 
 st.title('🧞 :violet[Genii] • Conversation Analysis')
