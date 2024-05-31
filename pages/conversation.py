@@ -112,7 +112,7 @@ if btnAnalyze:
             boxesCol.write(f"📦 Boxes :blue-background[**{len(boxes)}**]")
             for key, value in boxes.items():
                 if value["type"] == "success":
-                    st.success(f" **{value["label"]}**: {value["value"]}", icon=value["icon"])
+                    st.success(f" **{value['label']}**: {value['value']}", icon=value["icon"])
                 elif value["type"] == "warning":
                     st.warning(f" **{value["label"]}**: {value["value"]}", icon=value["icon"])
                 elif value["type"] == "error":
