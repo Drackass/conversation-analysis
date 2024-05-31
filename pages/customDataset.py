@@ -1,15 +1,14 @@
-import pandas as pd
 import streamlit as st
-import datetime
-from src.routes import getAllUsers
-from src.routes import getConversationsByProjectId, getConversationById, sendMessageToLlm
+import pandas as pd
+from src.routes import sendMessageToLlm
 from src.utils import getBoxes, getMetrics, getProgress, extract_json_object
 from src.azureOpenAiApiCredentials import azureOpenAiApiCredentials
 from src.prompts import prompts
 import openai
+import numpy as np
 
 st.set_page_config(
-    page_title="Genii • Conversation Analysis | Conversation",
+    page_title="Genii • Conversation Analysis | DatasetFile",
     page_icon="🧞",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -23,19 +22,48 @@ with st.sidebar:
     st.page_link("pages/customDataset.py", label="Custom Dataset", icon="📝")
     st.page_link("pages/help.py", label="Help Center", icon="🛟")
 
-
 TOLKAI_LOGO = "genii.svg"
 st.logo(TOLKAI_LOGO)
 
 st.title('🧞 :violet[Genii] • Conversation Analysis')
-st.header("💬 Conversation Analysis")
+st.header("📝 Custom Dataset")
 
-allUsers = getAllUsers()
-allUsers = [{"name": user["name"], "id": user["id"]} for user in allUsers["projects"]]
+# df = pd.DataFrame(
+#     [
+#        {"command": "st.selectbox", "rating": 4, "is_widget": True},
+#        {"command": "st.balloons", "rating": 5, "is_widget": False},
+#        {"command": "st.time_input", "rating": 3, "is_widget": True},
+#    ]
+# )
+# edited_df = st.data_editor(df)
 
-projectId = st.selectbox("select a user", allUsers, format_func=lambda x: x["name"], index=297, key="projectIdConversations")["id"]
+# favorite_command = edited_df.loc[edited_df["rating"].idxmax()]["command"]
+# st.markdown(f"Your favorite command is **{favorite_command}** 🎈")
 
-conversationId = st.text_input("Enter the conversation ID:")
+data_df = pd.DataFrame([
+    {"role": "👤 User", "message": "Hello World"},
+])
+
+
+dataframe = st.data_editor(
+    data_df,
+    column_config={
+        "role": st.column_config.SelectboxColumn(
+            " 👥 Role",
+            help="select a role",
+            width="medium",
+            options=[
+                "👤 User",
+                "🛟 assistant",
+            ],
+            required=True,
+        ),
+        "message": st.column_config.TextColumn("💬 Message"),
+    },
+    hide_index=True,
+    num_rows="dynamic",
+    use_container_width=True,
+)
 
 
 prompt = st.text_area(
@@ -78,34 +106,31 @@ if btnAnalyze:
     error = ""
     analysis = st.empty()
     allResults = {}
-    with analysis.status(f"🔎 1. {conversationId}", expanded=True) as status:
-        st.write("analyzing conversation...")
+    with analysis.status(f"🔎 Analysis in progress", expanded=True) as status:
+
+        messages = [{"role": "system", "content": prompt}]
+        for row in dataframe.iterrows():
+            if row[1][0] == '👤 User':
+                messages.append({"role": "user", "content": row[1][1]})
+            else:
+                messages.append({"role": "assistant", "content": row[1][1]})
+
+
+        st.write(f"Sending conversation to {azureOpenAiApiModel}...")
         try:
-            conversationMessages = getConversationById(projectId, conversationId)
-            messages=[{"role": "system", "content": prompt}]
-            for message in conversationMessages["history"]:
-                if message["sender"] == projectId:
-                    messages.append({"role": "assistant", "content": message["content"]["text"]})
-                else:
-                    messages.append({"role": "user", "content": message["content"]["text"]})
-            st.write(f"Sending conversation to {azureOpenAiApiModel}...")
+            llmResponse = sendMessageToLlm(messages, deployment_name, client)
             try:
-                llmResponse = sendMessageToLlm(messages, deployment_name, client)
-                try:
-                    llmResponseJson = extract_json_object(llmResponse)
-                except Exception as e:
-                    error = f"Error Parsing {azureOpenAiApiModel} response in json: {e}"
+                llmResponseJson = extract_json_object(llmResponse)
             except Exception as e:
-                error = f"Error Sending conversation **{conversationId}** to {azureOpenAiApiModel}: {e}"
-                
+                error = f"Error Parsing {azureOpenAiApiModel} response in json: {e}"
         except Exception as e:
-            error = f"Error Fetching conversation **{conversationId}**: {e}"
+            error = f"Error Sending conversation to {azureOpenAiApiModel}: {e}"
 
     analysis.empty()
     if error:
         st.error(error, icon='❌')
     else:
-        with st.expander(f"🔮 1. {conversationId}"):
+        with st.expander(f"🔮 Analysis complete"):
             totalCol, boxesCol, metricsCol, progressCol = st.columns(4)
             totalCol.write(f"🔍 Insights :blue-background[**{len(llmResponseJson)}**]")
 
@@ -113,14 +138,14 @@ if btnAnalyze:
             boxesCol.write(f"📦 Boxes :blue-background[**{len(boxes)}**]")
             for key, value in boxes.items():
                 if value["type"] == "success":
-                    st.success(f" **{value['label']}**: {value['value']}", icon=value["icon"])
+                    st.success(f" **{value['label']}**: {value['value']}", icon=value['icon'])
                 elif value["type"] == "warning":
-                    st.warning(f" **{value['label']}**: {value['value']}", icon=value["icon"])
+                    st.warning(f" **{value['label']}**: {value['value']}", icon=value['icon'])
                 elif value["type"] == "error":
-                    st.error(f" **{value['label']}**: {value['value']}", icon=value["icon"])
+                    st.error(f" **{value['label']}**: {value['value']}", icon=value['icon'])
                 else:
-                    st.info(f" **{value['label']}**: {value['value']}", icon=value["icon"])
-                    
+                    st.info(f" **{value['label']}**: {value['value']}", icon=value['icon'])
+
 
             metrics = getMetrics(llmResponseJson)
             metricsCol.write(f"📊 Metrics :blue-background[**{len(metrics)}**]")
@@ -150,13 +175,14 @@ if btnAnalyze:
                         col.container(border=True).progress(progress_value["value"] if progress_value["value"] is not None else 0, progress_value["name"])
                         progress_index += 1
                 st.divider()
-                for message in conversationMessages["history"]:
-                    if message["sender"] == projectId:
-                        st.chat_message("assistant").write(message["content"]["text"])
-                    else:
-                        st.chat_message("user").write(message["content"]["text"])
 
-    allResults[conversationId] = llmResponseJson
+                for message in messages:
+                    if message["role"] == "assistant":
+                        st.chat_message("assistant").write(message["content"])
+                    elif message["role"] == "user":
+                        st.chat_message("user").write(message["content"])
+
+    allResults["conversation Analysis"] = llmResponseJson
 
     @st.cache_data
     def convert_df(df):
@@ -174,6 +200,6 @@ if btnAnalyze:
         data=csv,
         file_name="insights.csv",
         mime="text/csv",
-    )
+    )   
 
     st.toast("Analysis Completed", icon="✅")

@@ -19,6 +19,7 @@ with st.sidebar:
     st.page_link("pages/projectConversations.py", label="Project Conversations", icon="🔮")
     st.page_link("pages/conversation.py", label="Conversation", icon="💬")
     st.page_link("pages/datasetFile.py", label="Dataset File", icon="📄")
+    st.page_link("pages/customDataset.py", label="Custom Dataset", icon="📝")
     st.page_link("pages/help.py", label="Help Center", icon="🛟")
 
 TOLKAI_LOGO = "genii.svg"
@@ -29,28 +30,8 @@ st.header("📄 Dataset File Analysis")
 
 uploaded_file = st.file_uploader("Choose a file")
 if uploaded_file is not None:
-    # # To read file as bytes:
-    # bytes_data = uploaded_file.getvalue()
-    # st.write(bytes_data)
-
-    # # To convert to a string based IO:
-    # stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
-    # st.write(stringio)
-
-    # # To read file as string:
-    # string_data = stringio.read()
-    # st.write(string_data)
-
-    # Can be used wherever a "file-like" object is accepted:
     dataframe = pd.read_csv(uploaded_file)
-    # st.write(dataframe)
-    # for row in dataframe.iterrows():
-    #     if row[1][0] == 'user':
-    #         st.write(f"user: {row[1][1]}")
-    #     else:
-    #         st.write(f"assistant: {row[1][1]}")
 
-    # convert dataframe to json object with message and boolean for user or assistant
 
     
 
@@ -188,3 +169,5 @@ if btnAnalyze:
         file_name="insights.csv",
         mime="text/csv",
     )   
+
+    st.toast("Analysis Completed", icon="✅")

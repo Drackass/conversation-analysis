@@ -1,4 +1,5 @@
 import csv
+import numpy as np
 import streamlit as st
 import datetime
 from src.routes import getAllUsers
@@ -21,6 +22,7 @@ with st.sidebar:
     st.page_link("pages/projectConversations.py", label="Project Conversations", icon="🔮")
     st.page_link("pages/conversation.py", label="Conversation", icon="💬")
     st.page_link("pages/datasetFile.py", label="Dataset File", icon="📄")
+    st.page_link("pages/customDataset.py", label="Custom Dataset", icon="📝")
     st.page_link("pages/help.py", label="Help Center", icon="🛟")
 
 TOLKAI_LOGO = "genii.svg"
@@ -141,6 +143,7 @@ if btnAnalyze:
                     except Exception as e:
                         error = f"Error Parsing {azureOpenAiApiModel} response in json: {e}"
 
+
                 except Exception as e:
                     error = f"Error Sending conversation **{conversationId}** to {azureOpenAiApiModel}: {e}"
                     
@@ -209,7 +212,8 @@ if btnAnalyze:
                         st.chat_message("user").write(message["content"]["text"])
                 indexConversation += 1
 
-        
+        # llmResponseJson["conversation"] = messages
+        # st.json(llmResponseJson)
         allResults[conversationId] = llmResponseJson
 
     @st.cache_data
@@ -219,7 +223,9 @@ if btnAnalyze:
 
     # convert allResults to a csv file with insights as rows and conversationsId as columns
     df = pd.DataFrame(allResults).T  # Transpose the dataframe
+    # df = pd.DataFrame(allResults).T.astype(str)  # Transpose the dataframe and convert all values to string
     st.write(df)
+
 
     csv = convert_df(df)
 
@@ -229,12 +235,5 @@ if btnAnalyze:
         file_name="insights.csv",
         mime="text/csv",
     )
-            
-        
 
-        
-            
-
-    
-                
-            
+    st.toast("Analysis Completed", icon="✅")
