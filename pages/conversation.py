@@ -16,7 +16,7 @@ st.set_page_config(
 )
 
 with st.sidebar:
-    st.page_link("main.py", label="Introduction", icon="🧞")
+    st.page_link("__main__.py", label="Introduction", icon="🧞")
     st.page_link("pages/projectConversations.py", label="Project Conversations", icon="🔮")
     st.page_link("pages/conversation.py", label="Conversation", icon="💬")
     st.page_link("pages/datasetFile.py", label="Dataset File", icon="📄")
@@ -161,13 +161,13 @@ if btnAnalyze:
     def convert_df(df):
         # IMPORTANT: Cache the conversion to prevent computation on every rerun
         return df.T.to_csv().encode("utf-8")  # Transpose the dataframe
-    
+
     # convert allResults to a csv file with insights as rows and conversationsId as columns
     df = pd.DataFrame(allResults).T  # Transpose the dataframe
     st.write(df)
-    
+
     csv = convert_df(df)
-    
+
     st.download_button(
         label="📥 Download Insights",
         data=csv,

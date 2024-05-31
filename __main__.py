@@ -9,7 +9,7 @@ st.set_page_config(
 )
 
 with st.sidebar:
-    st.page_link("main.py", label="Introduction", icon="🧞")
+    st.page_link("__main__.py", label="Introduction", icon="🧞")
     st.page_link("pages/projectConversations.py", label="Project Conversations", icon="🔮")
     st.page_link("pages/conversation.py", label="Conversation", icon="💬")
     st.page_link("pages/datasetFile.py", label="Dataset File", icon="📄")
