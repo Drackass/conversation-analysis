@@ -31,8 +31,12 @@ st.logo(TOLKAI_LOGO)
 st.title('🧞 :violet[Genii] • Conversation Analysis')
 st.header("🔮 Project Conversations Analysis")
 
-allUsers = getAllUsers()
-allUsers = [{"name": user["name"], "id": user["id"]} for user in allUsers["projects"]]
+try:
+    allUsers = getAllUsers()
+    allUsers = [{"name": user["name"], "id": user["id"]} for user in allUsers["projects"]]   
+except Exception as e:
+    st.error(f"**Error Fetching all users** _(try to refresh the app)_", icon='❌')
+    st.stop()
 
 projectId = st.selectbox("select a user", allUsers, format_func=lambda x: x["name"], index=297, key="projectIdConversations")["id"]
 
@@ -215,6 +219,27 @@ if btnAnalyze:
         # llmResponseJson["conversation"] = messages
         # st.json(llmResponseJson)
         allResults[conversationId] = llmResponseJson
+
+    
+
+	    
+
+    # select metrics
+    # selectedMetric = st.selectbox("Select a metric to view", list(metrics.keys()) if len(metrics) > 0 else ["No metrics available"], key="selectedMetric")
+
+    # generate graph with selected metric by conversation
+
+    # e.g. to get the delta of the selected metric
+    # st.write(metrics[selectedMetric]['delta'])
+
+    # resultChart = {}
+    # for conversationId, result in allResults.items():
+    #     resultChart[conversationId] = result[selectedMetric]['delta']
+
+    # # st.write(resultChart)
+
+    # # st.line_chart(resultChart)
+    # st.bar_chart(resultChart)
 
     @st.cache_data
     def convert_df(df):

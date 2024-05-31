@@ -30,8 +30,12 @@ st.logo(TOLKAI_LOGO)
 st.title('🧞 :violet[Genii] • Conversation Analysis')
 st.header("💬 Conversation Analysis")
 
-allUsers = getAllUsers()
-allUsers = [{"name": user["name"], "id": user["id"]} for user in allUsers["projects"]]
+try:
+    allUsers = getAllUsers()
+    allUsers = [{"name": user["name"], "id": user["id"]} for user in allUsers["projects"]]   
+except Exception as e:
+    st.error(f"**Error Fetching all users** _(try to refresh the app)_", icon='❌')
+    st.stop()
 
 projectId = st.selectbox("select a user", allUsers, format_func=lambda x: x["name"], index=297, key="projectIdConversations")["id"]
 
