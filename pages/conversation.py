@@ -114,11 +114,11 @@ if btnAnalyze:
                 if value["type"] == "success":
                     st.success(f" **{value['label']}**: {value['value']}", icon=value["icon"])
                 elif value["type"] == "warning":
-                    st.warning(f" **{value["label"]}**: {value["value"]}", icon=value["icon"])
+                    st.warning(f" **{value['label']}**: {value['value']}", icon=value["icon"])
                 elif value["type"] == "error":
-                    st.error(f" **{value["label"]}**: {value["value"]}", icon=value["icon"])
+                    st.error(f" **{value['label']}**: {value['value']}", icon=value["icon"])
                 else:
-                    st.info(f" **{value["label"]}**: {value["value"]}", icon=value["icon"])
+                    st.info(f" **{value['label']}**: {value['value']}", icon=value["icon"])
                     
 
             metrics = getMetrics(llmResponseJson)
