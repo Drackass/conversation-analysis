@@ -220,6 +220,27 @@ if btnAnalyze:
         # st.json(llmResponseJson)
         allResults[conversationId] = llmResponseJson
 
+    
+
+	    
+
+    # select metrics
+    # selectedMetric = st.selectbox("Select a metric to view", list(metrics.keys()) if len(metrics) > 0 else ["No metrics available"], key="selectedMetric")
+
+    # generate graph with selected metric by conversation
+
+    # e.g. to get the delta of the selected metric
+    # st.write(metrics[selectedMetric]['delta'])
+
+    # resultChart = {}
+    # for conversationId, result in allResults.items():
+    #     resultChart[conversationId] = result[selectedMetric]['delta']
+
+    # # st.write(resultChart)
+
+    # # st.line_chart(resultChart)
+    # st.bar_chart(resultChart)
+
     @st.cache_data
     def convert_df(df):
         # IMPORTANT: Cache the conversion to prevent computation on every rerun
