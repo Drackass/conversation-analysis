@@ -123,7 +123,7 @@ if btnAnalyze:
         conversationId = conversation["id"] 
         error = ""
         analysis = st.empty()
-        with analysis.status(f"🔎 {indexConversation}. {conversation["summary"]} : {conversationId}", expanded=True) as status:
+        with analysis.status(f"🔎 {indexConversation}. {conversation['summary']} : {conversationId}", expanded=True) as status:
             st.write("analyzing conversation...")
             try:
                 conversationMessages = getConversationById(projectId, conversationId)
@@ -152,7 +152,7 @@ if btnAnalyze:
             st.error(error, icon='❌')
             indexConversation += 1
         else:
-            with st.expander(f"🔮 {indexConversation}. {conversation["summary"]} : {conversationId}"):
+            with st.expander(f"🔮 {indexConversation}. {conversation['summary']} : {conversationId}"):
                 totalCol, boxesCol, metricsCol, progressCol = st.columns(4)
                 totalCol.write(f"🔍 Insights :blue-background[**{len(llmResponseJson)}**]")
 
@@ -160,13 +160,13 @@ if btnAnalyze:
                 boxesCol.write(f"📦 Boxes :blue-background[**{len(boxes)}**]")
                 for key, value in boxes.items():
                     if value["type"] == "success":
-                        st.success(f" **{value["label"]}**: {value["value"]}", icon=value["icon"])
+                        st.success(f" **{value['label']}**: {value['value']}", icon=value["icon"])
                     elif value["type"] == "warning":
-                        st.warning(f" **{value["label"]}**: {value["value"]}", icon=value["icon"])
+                        st.warning(f" **{value['label']}**: {value['value']}", icon=value["icon"])
                     elif value["type"] == "error":
-                        st.error(f" **{value["label"]}**: {value["value"]}", icon=value["icon"])
+                        st.error(f" **{value['label']}**: {value['value']}", icon=value["icon"])
                     else:
-                        st.info(f" **{value["label"]}**: {value["value"]}", icon=value["icon"])
+                        st.info(f" **{value['label']}**: {value['value']}", icon=value["icon"])
                         
 
                 metrics = getMetrics(llmResponseJson)
