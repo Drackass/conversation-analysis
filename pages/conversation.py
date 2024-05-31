@@ -1,3 +1,4 @@
+import pandas as pd
 import streamlit as st
 import datetime
 from src.routes import getAllUsers
@@ -8,23 +9,25 @@ from src.prompts import prompts
 import openai
 
 st.set_page_config(
-    page_title="Genii • Conversation Analysis",
-    page_icon="🔮",
+    page_title="Genii • Conversation Analysis | Conversation",
+    page_icon="🧞",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 with st.sidebar:
-    st.page_link("main.py", label="Introduction", icon="✨")
+    st.page_link("main.py", label="Introduction", icon="🧞")
     st.page_link("pages/projectConversations.py", label="Project Conversations", icon="🔮")
     st.page_link("pages/conversation.py", label="Conversation", icon="💬")
     st.page_link("pages/datasetFile.py", label="Dataset File", icon="📄")
+    st.page_link("pages/help.py", label="Help Center", icon="🛟")
+
 
 TOLKAI_LOGO = "Genii.svg"
 st.logo(TOLKAI_LOGO)
 
-st.title('🔮 :violet[Genii] • Conversation Analysis')
-st.header("Conversation Analysis")
+st.title('🧞 :violet[Genii] • Conversation Analysis')
+st.header("💬 Conversation Analysis")
 
 allUsers = getAllUsers()
 allUsers = [{"name": user["name"], "id": user["id"]} for user in allUsers["projects"]]
@@ -73,6 +76,7 @@ if btnAnalyze:
 
     error = ""
     analysis = st.empty()
+    allResults = {}
     with analysis.status(f"🔎 1. {conversationId}", expanded=True) as status:
         st.write("analyzing conversation...")
         try:
@@ -150,3 +154,23 @@ if btnAnalyze:
                         st.chat_message("assistant").write(message["content"]["text"])
                     else:
                         st.chat_message("user").write(message["content"]["text"])
+
+    allResults[conversationId] = llmResponseJson
+
+    @st.cache_data
+    def convert_df(df):
+        # IMPORTANT: Cache the conversion to prevent computation on every rerun
+        return df.T.to_csv().encode("utf-8")  # Transpose the dataframe
+    
+    # convert allResults to a csv file with insights as rows and conversationsId as columns
+    df = pd.DataFrame(allResults).T  # Transpose the dataframe
+    st.write(df)
+    
+    csv = convert_df(df)
+    
+    st.download_button(
+        label="📥 Download Insights",
+        data=csv,
+        file_name="insights.csv",
+        mime="text/csv",
+    )
