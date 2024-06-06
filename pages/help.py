@@ -1,29 +1,9 @@
 import streamlit as st
+from src.components.sidebar import sidebar
 
-st.set_page_config(
-    page_title="Genii • Conversation Analysis | Help Center",
-    page_icon="🧞",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+sidebar("Genii • Conversation Analysis | Help Center", '🧞 :violet[Genii] • Conversation Analysis', "🛟 Help Center - Conversion Analysis by Tolk.ai")
 
-with st.sidebar:
-    st.page_link("__main__.py", label="Introduction", icon="🧞")
-    st.page_link("pages/projectConversations.py", label="Project Conversations", icon="🔮")
-    st.page_link("pages/conversation.py", label="Conversation", icon="💬")
-    st.page_link("pages/datasetFile.py", label="Dataset File", icon="📄")
-    st.page_link("pages/customDataset.py", label="Custom Dataset", icon="📝")
-    st.page_link("pages/help.py", label="Help Center", icon="🛟")
-
-
-TOLKAI_LOGO = "genii.svg"
-st.logo(TOLKAI_LOGO)
-
-st.title('🧞 :violet[Genii] • Conversation Analysis')
-
-st.markdown('''# 🛟 Help Center - Conversion Analysis by Tolk.ai
-
-## Welcome to the Help Center
+st.markdown('''## Welcome to the Help Center
 
 Our comprehensive help center is here to assist you in navigating and utilizing our cutting-edge conversion analysis platform. Below, you'll find detailed information about the various features, functionalities, and supported formats to help you make the most of our solution.
 

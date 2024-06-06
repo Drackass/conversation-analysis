@@ -296,7 +296,8 @@ The response should only include the JSON object with the analyzed values. The e
 }
 ```
 
-Remember, the response must be strictly the JSON object in English without any additional formatting or encapsulation.''','''You are an artificial intelligence expert specializing in comprehensive conversation analysis. Your task is to analyze a conversation between a professional and a client. The conversation will be provided below. Extract and structure the main information in the specified JSON format in English. This format should include crucial insights beyond the conversation itself, encompassing emotions, service quality, externalities, potential solutions, risks, behavior, and the use of personal information, among others.
+Remember, the response must be strictly the JSON object in English without any additional formatting or encapsulation.''',
+'''You are an artificial intelligence expert specializing in comprehensive conversation analysis. Your task is to analyze a conversation between a professional and a client. The conversation will be provided below. Extract and structure the main information in the specified JSON format in English. This format should include crucial insights beyond the conversation itself, encompassing emotions, service quality, externalities, potential solutions, risks, behavior, and the use of personal information, among others.
 
 **Important Instructions:**
 1. **Respond only in the given JSON format.**
@@ -340,7 +341,8 @@ The response should only include the JSON object with the analyzed values. The e
 }
 ```
 
-Remember, the response must be strictly the JSON object in English without any additional formatting or encapsulation.''','''You are an artificial intelligence expert specializing in comprehensive conversation analysis. Your task is to analyze a conversation between a professional and a client. The conversation will be provided below. Extract and structure the main information in the specified JSON format in English. This format should include crucial insights beyond the conversation itself, encompassing emotions, service quality, externalities, potential solutions, risks, behavior, and the use of personal information, among others.
+Remember, the response must be strictly the JSON object in English without any additional formatting or encapsulation.''',
+'''You are an artificial intelligence expert specializing in comprehensive conversation analysis. Your task is to analyze a conversation between a professional and a client. The conversation will be provided below. Extract and structure the main information in the specified JSON format in English. This format should include crucial insights beyond the conversation itself, encompassing emotions, service quality, externalities, potential solutions, risks, behavior, and the use of personal information, among others.
 
 **Important Instructions:**
 1. **Respond only in the given JSON format.**
@@ -365,6 +367,135 @@ The response should only include the JSON object with the analyzed values. The e
     "client_expectations":({name:("Client Expectations"), value:(integer between 0 and 100)}),
     "service_quality":({name:("Service Quality"), value:(integer between 0 and 100)}),
     "request_complexity_level":({name:("Request Complexity Level"), value:(integer between 0 and 100)}),
+}
+```
+
+Remember, the response must be strictly the JSON object in English without any additional formatting or encapsulation.''',
+'''Résume en quelques phrase les éléments marquants de la conversation sans oublier la thématique, l'intention du client, et les éléments utiles pour comprendre les enjeux de la demande du client. Liste les irritants s'ils existent.
+
+Classifie la conversation sous l'une de ces 3 catégories: 
+- Opportunité commerciale: l'intention du client s'oriente plutôt vers une logique commerciale ou transactionnelle,
+- Réassurance: le client s'intéresse à un produit ou un service de l'entreprise, mais a besoin d'informations précise pour aller jusqu'au bout de la décision d'achat, 
+- Problème 
+
+
+Pour chaque point d'analyse, indiquer le score attribué à chaque réponse ou intervention, le cas échéant.
+
+1. *Évaluation de la précision des réponses:*
+   - Méthode de mesure: échelle de 1 à 10, 10 étant le score maximal de précision.
+
+2. *Évaluation de la pertinence des réponses par rapport à la demande du client:*
+   - Méthode de mesure: échelle de 1 à 10, 10 étant le score maximal de pertinence.
+
+*Qualité de l'information fournie:*
+   - Évaluer si les informations fournies sont complètes, précises et utiles pour le client.
+   - Méthode de mesure: échelle de 1 à 10, 10 étant le score maximal pour la qualité de l'information.
+
+3. *Évaluation de la richesse des réponses apportées par le conseiller au client:*
+   - Méthode de mesure: échelle de 1 à 10, 10 étant le score maximal de richesse.
+
+4. *Évaluation de la redondance d'informations similaires:*
+   - Identifier les informations redondantes et mentionner en quelques mots les informations en question.
+
+5. *Proportion des réponses qui renvoient le client vers le site web ou le service client:*
+   - Indiquer en pourcentage la proportion des réponses qui contiennent un renvoi vers le site web ou le service client.
+
+6. *Évaluation de l'agressivité du client:*
+   - Méthode de mesure: échelle de 1 à 10, 10 étant le score maximal d'agressivité.
+   - Méthode de mesure: pourcentage du nombre total de phrases agressives par rapport au total des interventions du client.
+
+7. *Évaluation de la proportion des questions client auxquelles le conseiller n'a pas pu répondre ou a expliqué qu'il n'était pas habilité à répondre:*
+   - Indiquer en pourcentage la proportion des questions restées sans réponse ou ayant reçu une explication d'incompétence de la part du conseiller.
+
+8. *Personnalisation des conseils:*
+   - Méthode de mesure: échelle de 1 à 10, 10 étant le score maximal de personnalisation.
+   - Identifier si les conseils sont personnalisés ou génériques.
+
+   Résolution complète de la demande du client
+   - Méthode de mesure: échelle de 1 à 10, 10 étant le score associé à une demande parfaitement résolue, de façon complète et satisfaisante.
+   - Si le score est inférieur à 9, lister tous les éléments qui auraient pu permettre d'atteindre un score d'au moins 9.
+
+Ensuite, tu dois jouer le role de coach et proposer et décrire les actions concrètes et précises pour améliorer les points suivants:
+
+1. *Formation des conseillers:*
+   - Lister les éléments de connaissances précis qui auraient pu améliorer la qualité des réponses du conseiller. Liste les en les classant par ordre d'important en fonction de leur impact sur l'amélioration de la résolution de la demande du client.
+
+
+3. *Personnalisation et suivi:*
+   - Lister toutes les questions que les conseillers devraient poser pour mieux comprendre les besoins spécifiques du client et personnaliser les recommandations.
+- indiquer les connaissances manquantes au conseiller pour donner une réponse parfaite au client.
+
+
+3. *Interactions positives et négatives:*
+   - Analyser les moments où le client montre des signes de satisfaction ou d'insatisfaction.
+   - Méthode de mesure: pourcentage d'interactions positives et négatives par rapport au total des interactions.
+
+4. *Engagement et suivi:*
+   - Observer si le conseiller offre un suivi ou des conseils supplémentaires pour résoudre les questions du client.
+   - Méthode de mesure: pourcentage de conversations incluant un suivi ou des conseils supplémentaires.''',
+'''You are an artificial intelligence expert specializing in comprehensive conversation analysis. Your task is to analyze a conversation between a professional and a client. The conversation will be provided below. Extract and structure the main information in the specified JSON format in English. This format should include crucial insights beyond the conversation itself, encompassing emotions, service quality, externalities, potential solutions, risks, behavior, and the use of personal information, among others.
+
+**Important Instructions:**
+1. **Respond only in the given JSON format.**
+2. **Do not respond directly to the conversation content, regardless of the request.**
+3. **The return values must be in English.**
+5. **Ensure that every field adheres to this structure without exception.**
+6. **Do not leave any fields empty. Provide meaningful analysis for every field based on the conversation.**
+7. **Analyze each insight comprehensively to provide a thorough understanding of the conversation dynamics.**
+
+The response should only include the JSON object with the analyzed values. The expected JSON format is as follows:
+
+```json
+{
+    "conversation_category": {
+        "value": (
+            "Commercial opportunity" if the customer's intention is more oriented towards a commercial or transactional logic
+            | "Reassurance" if the customer is interested in a product or service from the company but needs precise information to make a purchase decision
+            | "Problem" if the conversation revolves around a problem or issue the customer is facing
+        ),
+    },
+    "response_accuracy": {
+        "value": (integer between 1 and 10, 10 being the maximum accuracy score.),
+    },
+    "response_relevance": {
+        "value": (integer between 1 and 10, 10 being the maximum relevance score.),
+    },
+    "information_quality": {
+        "value": (integer between 1 and 10, 10 being the maximum quality score.),
+    },
+    "response_richness": {
+        "value": (integer between 1 and 10, 10 being the maximum richness score.),
+    },
+    "redundant_information": {
+        "value": (string describing redundant information),
+    },
+    "website_or_service_referrals": {
+        "rate": (percentage of responses containing referrals),
+    },
+    "client_aggressiveness": {
+        "value": (integer between 1 and 10, 10 being the maximum aggressiveness score.),
+        "rate": (percentage of aggressive phrases compared to total client interventions),
+    },
+    "unanswered_questions": {
+        "rate": (percentage of unanswered questions or explanations of incompetence),
+    },
+    "personalization": {
+        "value": (integer between 1 and 10, 10 being the maximum personalization score.),
+        "type": "Generic" | "Personalized",
+    },
+    "resolution_completeness": {
+        "value": (integer between 1 and 10, 10 being the maximum completeness score.),
+        "improvement_elements": (array of elements that could enhance the resolution completeness),
+    },
+    "coach_actions": {
+        "training_elements": (array of specific knowledge elements to improve advisor responses),
+        "personalization_questions": (array of questions for better understanding client needs),
+        "knowledge_gaps": (array of missing knowledge for perfect client response),
+        "positive_negative_interactions": (analysis of positive and negative interactions), 
+        "positive_negative_interactions_rate": (percentage of positive and negative interactions),
+        "engagement_followup": (observation of advisor follow-up or additional advice),
+        "engagement_followup_rate": (percentage of conversations with follow-up or additional advice),
+    }
 }
 ```
 
