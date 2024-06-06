@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from src.components.sidebar import sidebar
 from src.routes import sendMessageToLlm
 from src.utils import getBoxes, getMetrics, getProgress, extract_json_object
 from src.azureOpenAiApiCredentials import azureOpenAiApiCredentials
@@ -7,26 +8,7 @@ from src.prompts import prompts
 import openai
 import numpy as np
 
-st.set_page_config(
-    page_title="Genii • Conversation Analysis | DatasetFile",
-    page_icon="🧞",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
-with st.sidebar:
-    st.page_link("__main__.py", label="Introduction", icon="🧞")
-    st.page_link("pages/projectConversations.py", label="Project Conversations", icon="🔮")
-    st.page_link("pages/conversation.py", label="Conversation", icon="💬")
-    st.page_link("pages/datasetFile.py", label="Dataset File", icon="📄")
-    st.page_link("pages/customDataset.py", label="Custom Dataset", icon="📝")
-    st.page_link("pages/help.py", label="Help Center", icon="🛟")
-
-TOLKAI_LOGO = "genii.svg"
-st.logo(TOLKAI_LOGO)
-
-st.title('🧞 :violet[Genii] • Conversation Analysis')
-st.header("📝 Custom Dataset")
+sidebar("Genii • Conversation Analysis | DatasetFile", '🧞 :violet[Genii] • Conversation Analysis', "📝 Custom Dataset")
 
 # df = pd.DataFrame(
 #     [

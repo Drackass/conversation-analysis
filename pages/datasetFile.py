@@ -6,27 +6,9 @@ from src.utils import getBoxes, getMetrics, getProgress, extract_json_object
 from src.azureOpenAiApiCredentials import azureOpenAiApiCredentials
 from src.prompts import prompts
 import openai
+from src.components.sidebar import sidebar
 
-st.set_page_config(
-    page_title="Genii • Conversation Analysis | DatasetFile",
-    page_icon="🧞",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
-with st.sidebar:
-    st.page_link("__main__.py", label="Introduction", icon="🧞")
-    st.page_link("pages/projectConversations.py", label="Project Conversations", icon="🔮")
-    st.page_link("pages/conversation.py", label="Conversation", icon="💬")
-    st.page_link("pages/datasetFile.py", label="Dataset File", icon="📄")
-    st.page_link("pages/customDataset.py", label="Custom Dataset", icon="📝")
-    st.page_link("pages/help.py", label="Help Center", icon="🛟")
-
-TOLKAI_LOGO = "genii.svg"
-st.logo(TOLKAI_LOGO)
-
-st.title('🧞 :violet[Genii] • Conversation Analysis')
-st.header("📄 Dataset File Analysis")
+sidebar("Genii • Conversation Analysis | DatasetFile", '🧞 :violet[Genii] • Conversation Analysis', "📄 Dataset File Analysis")
 
 uploaded_file = st.file_uploader("Choose a file")
 if uploaded_file is not None:

@@ -7,28 +7,12 @@ from src.utils import getBoxes, getMetrics, getProgress, extract_json_object
 from src.azureOpenAiApiCredentials import azureOpenAiApiCredentials
 from src.prompts import prompts
 import openai
+from src.components.sidebar import sidebar
+import json
 
-st.set_page_config(
-    page_title="Genii • Conversation Analysis | Conversation",
-    page_icon="🧞",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+# 5a16bb08-8c87-4145-aaf5-2f75c7beb6f4
 
-with st.sidebar:
-    st.page_link("__main__.py", label="Introduction", icon="🧞")
-    st.page_link("pages/projectConversations.py", label="Project Conversations", icon="🔮")
-    st.page_link("pages/conversation.py", label="Conversation", icon="💬")
-    st.page_link("pages/datasetFile.py", label="Dataset File", icon="📄")
-    st.page_link("pages/customDataset.py", label="Custom Dataset", icon="📝")
-    st.page_link("pages/help.py", label="Help Center", icon="🛟")
-
-
-TOLKAI_LOGO = "genii.svg"
-st.logo(TOLKAI_LOGO)
-
-st.title('🧞 :violet[Genii] • Conversation Analysis')
-st.header("💬 Conversation Analysis")
+sidebar("Genii • Conversation Analysis | Conversation",'🧞 :violet[Genii] • Conversation Analysis',"💬 Conversation Analysis")
 
 try:
     allUsers = getAllUsers()
@@ -44,7 +28,7 @@ conversationId = st.text_input("Enter the conversation ID:")
 
 prompt = st.text_area(
         label="Enter a prompt to analyze the conversations:",
-        value=prompts[5],
+        value=prompts[7],
         height=300,
     )
 
@@ -95,10 +79,11 @@ if btnAnalyze:
             st.write(f"Sending conversation to {azureOpenAiApiModel}...")
             try:
                 llmResponse = sendMessageToLlm(messages, deployment_name, client)
-                try:
-                    llmResponseJson = extract_json_object(llmResponse)
-                except Exception as e:
-                    error = f"Error Parsing {azureOpenAiApiModel} response in json: {e}"
+                llmResponseJson = llmResponse
+                # try:
+                #     llmResponseJson = extract_json_object(llmResponse)
+                # except Exception as e:
+                #     error = f"Error Parsing {azureOpenAiApiModel} response in json: {e}"
             except Exception as e:
                 error = f"Error Sending conversation **{conversationId}** to {azureOpenAiApiModel}: {e}"
                 
@@ -110,74 +95,66 @@ if btnAnalyze:
         st.error(error, icon='❌')
     else:
         with st.expander(f"🔮 1. {conversationId}"):
-            totalCol, boxesCol, metricsCol, progressCol = st.columns(4)
-            totalCol.write(f"🔍 Insights :blue-background[**{len(llmResponseJson)}**]")
+            # st.write(llmResponseJson)
+            st.json(llmResponseJson)
 
-            boxes = getBoxes(llmResponseJson)
-            boxesCol.write(f"📦 Boxes :blue-background[**{len(boxes)}**]")
-            for key, value in boxes.items():
-                if value["type"] == "success":
-                    st.success(f" **{value['label']}**: {value['value']}", icon=value["icon"])
-                elif value["type"] == "warning":
-                    st.warning(f" **{value['label']}**: {value['value']}", icon=value["icon"])
-                elif value["type"] == "error":
-                    st.error(f" **{value['label']}**: {value['value']}", icon=value["icon"])
-                else:
-                    st.info(f" **{value['label']}**: {value['value']}", icon=value["icon"])
+
+            # totalCol, boxesCol, metricsCol, progressCol = st.columns(4)
+            # totalCol.write(f"🔍 Insights :blue-background[**{len(llmResponseJson)}**]")
+
+            # boxes = getBoxes(llmResponseJson)
+            # boxesCol.write(f"📦 Boxes :blue-background[**{len(boxes)}**]")
+            # for key, value in boxes.items():
+            #     if value["type"] == "success":
+            #         st.success(f" **{value['label']}**: {value['value']}", icon=value["icon"])
+            #     elif value["type"] == "warning":
+            #         st.warning(f" **{value['label']}**: {value['value']}", icon=value["icon"])
+            #     elif value["type"] == "error":
+            #         st.error(f" **{value['label']}**: {value['value']}", icon=value["icon"])
+            #     else:
+            #         st.info(f" **{value['label']}**: {value['value']}", icon=value["icon"])
                     
 
-            metrics = getMetrics(llmResponseJson)
-            metricsCol.write(f"📊 Metrics :blue-background[**{len(metrics)}**]")
-            num_metrics = len(metrics)
-            num_columns = 4
-            num_rows = num_metrics // num_columns + (num_metrics % num_columns > 0)
-            metric_index = 0
-            for row in range(num_rows):
-                cols = st.columns(num_columns)
-                for col in cols:
-                    if metric_index < num_metrics:
-                        metric = metrics[list(metrics.keys())[metric_index]]
-                        col.container(border=True).metric(metric["name"], metric["value"], f"{metric['delta']}%")
-                        metric_index += 1
+            # metrics = getMetrics(llmResponseJson)
+            # metricsCol.write(f"📊 Metrics :blue-background[**{len(metrics)}**]")
+            # num_metrics = len(metrics)
+            # num_columns = 4
+            # num_rows = num_metrics // num_columns + (num_metrics % num_columns > 0)
+            # metric_index = 0
+            # for row in range(num_rows):
+            #     cols = st.columns(num_columns)
+            #     for col in cols:
+            #         if metric_index < num_metrics:
+            #             metric = metrics[list(metrics.keys())[metric_index]]
+            #             col.container(border=True).metric(metric["name"], metric["value"], f"{metric['delta']}%")
+            #             metric_index += 1
 
-            progress = getProgress(llmResponseJson)
-            progressCol.write(f"📈 Progress :blue-background[**{len(progress)}**]")
-            num_progress = len(progress)
-            num_columns = 4
-            num_rows = num_progress // num_columns + (num_progress % num_columns > 0)
-            progress_index = 0
-            for row in range(num_rows):
-                cols = st.columns(num_columns)
-                for col in cols:
-                    if progress_index < num_progress:
-                        progress_value = progress[list(progress.keys())[progress_index]]
-                        col.container(border=True).progress(progress_value["value"] if progress_value["value"] is not None else 0, progress_value["name"])
-                        progress_index += 1
-                st.divider()
-                for message in conversationMessages["history"]:
-                    if message["sender"] == projectId:
-                        st.chat_message("assistant").write(message["content"]["text"])
-                    else:
-                        st.chat_message("user").write(message["content"]["text"])
+            # progress = getProgress(llmResponseJson)
+            # progressCol.write(f"📈 Progress :blue-background[**{len(progress)}**]")
+            # num_progress = len(progress)
+            # num_columns = 4
+            # num_rows = num_progress // num_columns + (num_progress % num_columns > 0)
+            # progress_index = 0
+            # for row in range(num_rows):
+            #     cols = st.columns(num_columns)
+            #     for col in cols:
+            #         if progress_index < num_progress:
+            #             progress_value = progress[list(progress.keys())[progress_index]]
+            #             col.container(border=True).progress(progress_value["value"] if progress_value["value"] is not None else 0, progress_value["name"])
+            #             progress_index += 1
+            st.divider()
+            for message in conversationMessages["history"]:
+                if message["sender"] == projectId:
+                    st.chat_message("assistant").write(message["content"]["text"])
+                else:
+                    st.chat_message("user").write(message["content"]["text"])
 
-    allResults[conversationId] = llmResponseJson
-
-    @st.cache_data
-    def convert_df(df):
-        # IMPORTANT: Cache the conversion to prevent computation on every rerun
-        return df.T.to_csv().encode("utf-8")  # Transpose the dataframe
-
-    # convert allResults to a csv file with insights as rows and conversationsId as columns
-    df = pd.DataFrame(allResults).T  # Transpose the dataframe
+    # allResults["conversation Analysis"] = llmResponseJson
+    
+    # convert all values of keys to string to avoid error
+    llmResponseJson = json.loads(llmResponseJson)
+    data = {key: json.dumps(value, indent=4) if isinstance(value, dict) or isinstance(value, list) else str(value) for key, value in llmResponseJson.items()}
+    df = pd.DataFrame(data, index=[0])
     st.write(df)
-
-    csv = convert_df(df)
-
-    st.download_button(
-        label="📥 Download Insights",
-        data=csv,
-        file_name="insights.csv",
-        mime="text/csv",
-    )
 
     st.toast("Analysis Completed", icon="✅")
