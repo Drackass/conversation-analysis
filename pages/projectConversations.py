@@ -1,15 +1,14 @@
-import csv
-import numpy as np
 import streamlit as st
 import datetime
 from src.routes import getAllUsers
-from src.routes import getConversationsByProjectId, getConversationById, sendMessageToLlm
-from src.utils import getBoxes, getMetrics, getProgress, extract_json_object
-from src.azureOpenAiApiCredentials import azureOpenAiApiCredentials
-from src.prompts import prompts
+from src.routes import getConversationsByProjectId, getConversationById, sendMessageToLlm, sendCompletionToLlm
+from src.utils import flatten_json, extract_json_structure, formalize_messages, extract_json_object
+from src.prompts import prompts, context, jsonStructurePrompt, ReportPrompt
 import openai
 import pandas as pd
 from src.components.sidebar import sidebar
+from src.misc import llmJson
+import json
 
 sidebar("Genii • Conversation Analysis | Project Conversations", '🧞 :violet[Genii] • Conversation Analysis', "🔮 Project Conversations Analysis")
 
@@ -50,26 +49,19 @@ else:
     params['sort'] = '[{"field":"date","sort":"desc"}]'
     params['offset'] = 0
 
-
-
-
-
-
-
-
-prompt = st.text_area(
+customPrompt = st.text_area(
         label="Enter a prompt to analyze the conversations:",
-        value=prompts[5],
+        value=prompts[6],
         height=300,
     )
 
 modelCol, analyzeCol = st.columns(2)
 
 with modelCol:
-    azureOpenAiApiModel = st.selectbox(
+    OpenAiApiModel = st.selectbox(
         "Select a model:",
-        [model for model in azureOpenAiApiCredentials.keys()],
-        index=2,
+        ["gpt-4o", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo", "gpt-3.5"],
+        index=3,
         label_visibility="collapsed",
     )
 
@@ -83,15 +75,8 @@ with analyzeCol:
 if btnAnalyze:
     st.divider()
 
-    deployment_name = azureOpenAiApiCredentials[azureOpenAiApiModel]["deployment_name"]
-    azure_endpoint = azureOpenAiApiCredentials[azureOpenAiApiModel]["azure_endpoint"]
-    api_key = azureOpenAiApiCredentials[azureOpenAiApiModel]["api_key"]
-    api_version = azureOpenAiApiCredentials[azureOpenAiApiModel]["api_version"]
-
-    client = openai.AzureOpenAI(
-        azure_endpoint = azure_endpoint, 
-        api_key=api_key,  
-        api_version=api_version
+    client = openai.OpenAI(
+      api_key=st.secrets["OPENAI_API_KEY"],
     )
 
     conversationsAnalysis = []
@@ -105,33 +90,39 @@ if btnAnalyze:
     
 
     indexConversation = 1
-    allResults = {}
+    analysisResultsFormated = {}
+    analysisResults= {}
+    refJsonFormatPrompt = ""
     for conversation in conversations["data"]:
         
         conversationId = conversation["id"] 
         error = ""
         analysis = st.empty()
+
         with analysis.status(f"🔎 {indexConversation}. {conversation['summary']} : {conversationId}", expanded=True) as status:
             st.write("analyzing conversation...")
             try:
                 conversationMessages = getConversationById(projectId, conversationId)
-                messages=[{"role": "system", "content": prompt}]
+
+                analysisPrompt = f"{context}\n{customPrompt}"
+                if refJsonFormatPrompt:
+                    analysisPrompt += f"\n\n{refJsonFormatPrompt}"
+                messages=[{"role": "system", "content": analysisPrompt}]
                 for message in conversationMessages["history"]:
                     if message["sender"] == projectId:
                         messages.append({"role": "assistant", "content": message["content"]["text"]})
                     else:
                         messages.append({"role": "user", "content": message["content"]["text"]})
-                st.write(f"Sending conversation to {azureOpenAiApiModel}...")
+                st.write(f"Sending conversation to {OpenAiApiModel}...")
                 try:
-                    llmResponse = sendMessageToLlm(messages, deployment_name, client)
+                    llmResponse = sendMessageToLlm(messages, OpenAiApiModel, client)
                     try:
                         llmResponseJson = extract_json_object(llmResponse)
+                        # llmResponseJson = llmJson
                     except Exception as e:
-                        error = f"Error Parsing {azureOpenAiApiModel} response in json: {e}"
-
-
+                        error = f"Error Parsing {OpenAiApiModel} response in json: {e}"
                 except Exception as e:
-                    error = f"Error Sending conversation **{conversationId}** to {azureOpenAiApiModel}: {e}"
+                    error = f"Error Sending conversation **{conversationId}** to {OpenAiApiModel}: {e}"
                     
             except Exception as e:
                 error = f"Error Fetching conversation **{conversationId}**: {e}"
@@ -142,53 +133,31 @@ if btnAnalyze:
             indexConversation += 1
         else:
             with st.expander(f"🔮 {indexConversation}. {conversation['summary']} : {conversationId}"):
-                totalCol, boxesCol, metricsCol, progressCol = st.columns(4)
-                totalCol.write(f"🔍 Insights :blue-background[**{len(llmResponseJson)}**]")
+                jsonStructure = extract_json_structure(llmResponseJson)
 
-                boxes = getBoxes(llmResponseJson)
-                boxesCol.write(f"📦 Boxes :blue-background[**{len(boxes)}**]")
-                for key, value in boxes.items():
-                    if value["type"] == "success":
-                        st.success(f" **{value['label']}**: {value['value']}", icon=value["icon"])
-                    elif value["type"] == "warning":
-                        st.warning(f" **{value['label']}**: {value['value']}", icon=value["icon"])
-                    elif value["type"] == "error":
-                        st.error(f" **{value['label']}**: {value['value']}", icon=value["icon"])
-                    else:
-                        st.info(f" **{value['label']}**: {value['value']}", icon=value["icon"])
-                        
+                flatData = flatten_json(llmResponseJson)
 
-                metrics = getMetrics(llmResponseJson)
-                metricsCol.write(f"📊 Metrics :blue-background[**{len(metrics)}**]")
-                num_metrics = len(metrics)
-                num_columns = 4
-                num_rows = num_metrics // num_columns + (num_metrics % num_columns > 0)
-                metric_index = 0
-                for row in range(num_rows):
-                    cols = st.columns(num_columns)
-                    for col in cols:
-                        if metric_index < num_metrics:
-                            metric = metrics[list(metrics.keys())[metric_index]]
-                            col.container(border=True).metric(metric["name"], metric["value"], f"{metric['delta']}%")
-                            metric_index += 1
+                formatedMessages = formalize_messages(messages)
+                flatData["conversation"] = formatedMessages
 
-                progress = getProgress(llmResponseJson)
-                progressCol.write(f"📈 Progress :blue-background[**{len(progress)}**]")
-                num_progress = len(progress)
-                num_columns = 4
-                num_rows = num_progress // num_columns + (num_progress % num_columns > 0)
-                progress_index = 0
-                for row in range(num_rows):
-                    cols = st.columns(num_columns)
-                    for col in cols:
-                        if progress_index < num_progress:
-                            progress_value = progress[list(progress.keys())[progress_index]]
-                            col.container(border=True).progress(progress_value["value"] if progress_value["value"] is not None else 0, progress_value["name"])
-                            progress_index += 1
+                refJsonFormatPrompt = f"{jsonStructurePrompt}\n\n```json\n{json.dumps(jsonStructure, indent=2)}\n```"
 
-                # convert llmResponseJson to a csv file with insights as columns and conversationsId as rows
-                
+                totalInsightCol, totalColumnCol, totalProjectRow, TotalMessageCol= st.columns(4)
 
+                totalInsightCol.write(f"🔍 Insights :blue-background[**{len(llmResponseJson)}**]")
+                totalColumnCol.write(f"➡️ Columns :blue-background[**{len(flatData)}**]")
+                totalProjectRow.write(f"⬇️ Row :blue-background[**1**]")
+                TotalMessageCol.write(f"💬 Messages :blue-background[**{len(conversationMessages['history'])}**]")
+
+                formatedFlatData = {key.replace("_", " ").replace("-", " > "): value for key, value in flatData.items()}
+
+                dataConversation = {}
+                dataConversation[conversationId] = formatedFlatData
+
+
+                dfConversations = pd.DataFrame(dataConversation).T
+
+                st.write(dfConversations)
 
                 st.divider()
                 for message in conversationMessages["history"]:
@@ -196,51 +165,29 @@ if btnAnalyze:
                         st.chat_message("assistant").write(message["content"]["text"])
                     else:
                         st.chat_message("user").write(message["content"]["text"])
+                        
                 indexConversation += 1
 
-        # llmResponseJson["conversation"] = messages
-        # st.json(llmResponseJson)
-        allResults[conversationId] = llmResponseJson
+        analysisResultsFormated[conversationId] = formatedFlatData
+        analysisResults[conversationId] = llmResponseJson
 
-    
+    with st.expander("✅ Conversation Analysis Report"):
+        totalColumnCol, totalProjectRow= st.columns(2)
 
-	    
+        totalColumnCol.write(f"➡️ Columns :blue-background[**{len(flatData)}**]")
+        totalProjectRow.write(f"⬇️ Row :blue-background[**{len(conversations['data'])}**]")
 
-    # select metrics
-    # selectedMetric = st.selectbox("Select a metric to view", list(metrics.keys()) if len(metrics) > 0 else ["No metrics available"], key="selectedMetric")
+        formatedFlatData = {key.replace("_", " ").replace("-", " > "): value for key, value in flatData.items()}
+        df = pd.DataFrame(analysisResultsFormated).T
+        st.write(df)
 
-    # generate graph with selected metric by conversation
+        st.divider()
 
-    # e.g. to get the delta of the selected metric
-    # st.write(metrics[selectedMetric]['delta'])
-
-    # resultChart = {}
-    # for conversationId, result in allResults.items():
-    #     resultChart[conversationId] = result[selectedMetric]['delta']
-
-    # # st.write(resultChart)
-
-    # # st.line_chart(resultChart)
-    # st.bar_chart(resultChart)
-
-    @st.cache_data
-    def convert_df(df):
-        # IMPORTANT: Cache the conversion to prevent computation on every rerun
-        return df.T.to_csv().encode("utf-8")  # Transpose the dataframe
-
-    # convert allResults to a csv file with insights as rows and conversationsId as columns
-    df = pd.DataFrame(allResults).T  # Transpose the dataframe
-    # df = pd.DataFrame(allResults).T.astype(str)  # Transpose the dataframe and convert all values to string
-    st.write(df)
-
-
-    csv = convert_df(df)
-
-    st.download_button(
-        label="📥 Download Insights",
-        data=csv,
-        file_name="insights.csv",
-        mime="text/csv",
-    )
+        with st.spinner("🧠 Generating Report..."):
+            with st.container(border=True):
+                reportPrompt = f"{ReportPrompt}\n\n```json\n{json.dumps(analysisResults, indent=2)}\n```"
+                report = sendCompletionToLlm(reportPrompt, OpenAiApiModel, client)
+                st.markdown(report)
+        
 
     st.toast("Analysis Completed", icon="✅")
