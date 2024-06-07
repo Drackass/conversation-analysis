@@ -73,7 +73,6 @@ if btnAnalyze:
                     messages.append({"role": "user", "content": message["content"]["text"]})
             st.write(f"Sending conversation to {OpenAiApiModel}...")
             try:
-                # llmResponse = sendMessageToLlm(messages, OpenAiApiModel, client)
                 try:
                     # llmResponseJson = extract_json_object(llmResponse)
                     llmResponseJson = llmJson
@@ -111,9 +110,9 @@ if btnAnalyze:
             formatedFlatData = {key.replace("_", " ").replace("-", " > "): value for key, value in flatData.items()}
 
             dataConversation = {}
-            dataConversation[projectId] = formatedFlatData
+            dataConversation[conversationId] = formatedFlatData
             
-            analysisResults[projectId] = formatedFlatData
+            analysisResults[conversationId] = formatedFlatData
 
             dfConversations = pd.DataFrame(dataConversation).T
 

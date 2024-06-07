@@ -3,6 +3,7 @@ from src.components.sidebar import sidebar
 
 sidebar("Genii • Conversation Analysis | Help Center", '🧞 :violet[Genii] • Conversation Analysis', "🛟 Help Center - Conversion Analysis by Tolk.ai")
 
+st.warning('**Warning:** This page is outdated', icon="⚠️")
 st.markdown('''## Welcome to the Help Center
 
 Our comprehensive help center is here to assist you in navigating and utilizing our cutting-edge conversion analysis platform. Below, you'll find detailed information about the various features, functionalities, and supported formats to help you make the most of our solution.

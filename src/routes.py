@@ -28,3 +28,10 @@ def sendMessageToLlm(messages, model_name, client):
         messages=messages,
     )
     return response.choices[0].message.content
+
+def sendCompletionToLlm(prompt, model_name, client):
+    response = client.chat.completions.create(
+        model=model_name,
+        messages=[{"role": "system", "content": prompt}],
+    )
+    return response.choices[0].message.content
