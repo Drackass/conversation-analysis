@@ -1,6 +1,6 @@
 import re
 import json
-
+import streamlit as st
 
 def describe_content(value, indent=0):
     indent_str = '  ' * indent 
@@ -49,7 +49,7 @@ def getProgress(json):
             progress[key] = value
     return progress
 
-def flatten_json(nested_json: dict, exclude: list=[''], sep: str='_') -> dict:
+def flatten_json(nested_json: dict, exclude: list=[''], sep: str='-') -> dict:
     """
     Flatten a list of nested dicts.
     """
@@ -70,3 +70,14 @@ def flatten_json(nested_json: dict, exclude: list=[''], sep: str='_') -> dict:
     flatten(nested_json)
     return out
 
+
+def extract_json_structure(data):
+    if isinstance(data, dict):
+        return {key: extract_json_structure(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        if len(data) > 0:
+            return [extract_json_structure(data[0])]
+        else:
+            return []
+    else:
+        return type(data).__name__

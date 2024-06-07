@@ -2,6 +2,7 @@ import requests
 import urllib.parse
 import streamlit as st
 import os
+from src.prompts import ReportPrompt
 
 base_url = "https://genii-api.tolk.ai/v1/"
 
@@ -27,4 +28,3 @@ def sendMessageToLlm(messages, model_name, client):
         messages=messages,
     )
     return response.choices[0].message.content
-
