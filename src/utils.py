@@ -81,3 +81,15 @@ def extract_json_structure(data):
             return []
     else:
         return type(data).__name__
+    
+
+
+def formalize_messages(json_input):
+    formatted_output = []
+    for entry in json_input:
+        if entry['role'] == 'user':
+            formatted_output.append(f"User:\n{entry['content']}\n\n")
+        elif entry['role'] == 'assistant':
+            formatted_output.append(f"Assistant:\n{entry['content']}\n\n")
+    
+    return ''.join(formatted_output)
