@@ -1,19 +1,14 @@
 import pandas as pd
 import streamlit as st
-import datetime
 from src.routes import getAllUsers
-from src.routes import getConversationsByProjectId, getConversationById, sendMessageToLlm
-from src.utils import getBoxes, getMetrics, getProgress, extract_json_object, flatten_json, extract_json_structure
-from src.azureOpenAiApiCredentials import azureOpenAiApiCredentials
-from src.prompts import prompts, context, ReportPrompt
+from src.routes import getConversationById
+from src.utils import flatten_json, extract_json_structure, formalize_messages
+from src.prompts import prompts, context, jsonStructurePrompt
 import openai
 from src.components.sidebar import sidebar
 import json
-from src.language import language
 
 from src.misc import llmJson
-
-# 5a16bb08-8c87-4145-aaf5-2f75c7beb6f4
 
 sidebar("Genii • Conversation Analysis | Conversation",'🧞 :violet[Genii] • Conversation Analysis',"💬 Conversation Analysis")
 
@@ -28,7 +23,7 @@ projectId = st.selectbox("select a user", allUsers, format_func=lambda x: x["nam
 
 conversationId = st.text_input("Enter the conversation ID:", "5a16bb08-8c87-4145-aaf5-2f75c7beb6f4")
 
-prompt = st.text_area(
+customPrompt = st.text_area(
         label="Enter a prompt to analyze the conversations:",
         value=prompts[6],
         height=300,
@@ -60,14 +55,17 @@ if btnAnalyze:
 
     error = ""
     analysis = st.empty()
-    allResults = {}
+    analysisResults = {}
+    refJsonFormatPrompt = ""
     with analysis.status(f"🔎 1. {conversationId}", expanded=True) as status:
         st.write("analyzing conversation...")
         try:
             conversationMessages = getConversationById(projectId, conversationId)
 
-            prompt = f"{context}\n{prompt}"
-            messages=[{"role": "system", "content": prompt}]
+            analysisPrompt = f"{context}\n{customPrompt}"
+            if refJsonFormatPrompt:
+                analysisPrompt += f"\n\n{refJsonFormatPrompt}"
+            messages=[{"role": "system", "content": analysisPrompt}]
             for message in conversationMessages["history"]:
                 if message["sender"] == projectId:
                     messages.append({"role": "assistant", "content": message["content"]["text"]})
@@ -88,57 +86,38 @@ if btnAnalyze:
             error = f"Error Fetching conversation **{conversationId}**: {e}"
 
     analysis.empty()
+    
     if error:
         st.error(error, icon='❌')
     else:
         with st.expander(f"🔮 1. {conversationId}"):
 
-            # Aplatir le JSON
-            flat_data = flatten_json(llmResponseJson)
+            jsonStructure = extract_json_structure(llmResponseJson)
 
+            flatData = flatten_json(llmResponseJson)
+
+            formatedMessages = formalize_messages(messages)
+            flatData["conversation"] = formatedMessages
+
+            refJsonFormatPrompt = f"{jsonStructurePrompt}\n\n```json\n{json.dumps(jsonStructure, indent=2)}\n```"
 
             totalInsightCol, totalColumnCol, totalProjectRow, TotalMessageCol= st.columns(4)
 
             totalInsightCol.write(f"🔍 Insights :blue-background[**{len(llmResponseJson)}**]")
-            totalColumnCol.write(f"➡️ Columns :blue-background[**{len(flat_data)}**]")
+            totalColumnCol.write(f"➡️ Columns :blue-background[**{len(flatData)}**]")
             totalProjectRow.write(f"⬇️ Row :blue-background[**1**]")
             TotalMessageCol.write(f"💬 Messages :blue-background[**{len(conversationMessages['history'])}**]")
 
+            formatedFlatData = {key.replace("_", " ").replace("-", " > "): value for key, value in flatData.items()}
 
+            dataConversation = {}
+            dataConversation[projectId] = formatedFlatData
+            
+            analysisResults[projectId] = formatedFlatData
 
-            # Remplacer les "_" par des espaces dans les clés
-            flat_data = {key.replace("_", " ").replace("-", " > "): value for key, value in flat_data.items()}
+            dfConversations = pd.DataFrame(dataConversation).T
 
-            # add projectId as row and flat data as column
-            data = {}
-            data[projectId] = flat_data
-
-            # Convertir en DataFrame
-            df = pd.DataFrame(data).T
-
-            st.write(df)
-
-            # get a report with llm
-            # try:
-            #     messages=[]
-            #     prompt = f"{ReportPrompt}\n{json.dumps(llmResponseJson, indent=4)}"
-            #     messages=[{"role": "system", "content": prompt}]
-            #     for message in conversationMessages["history"]:
-            #         if message["sender"] == projectId:
-            #             messages.append({"role": "assistant", "content": message["content"]["text"]})
-            #         else:
-            #             messages.append({"role": "user", "content": message["content"]["text"]})
-
-            #     with st.spinner("🧠 Generating report..."):
-            #         try:
-            #             llmResponse = sendMessageToLlm(messages, OpenAiApiModel, client)
-            #         except Exception as e:
-            #             st.error(f"Error Sending conversation to {OpenAiApiModel}: {e}", icon='❌')
-            #             st.stop()
-            #     st.markdown(llmResponse)
-
-            # except Exception as e:
-            #     st.error(f"Error Sending conversation to {OpenAiApiModel}: {e}", icon='❌')
+            st.write(dfConversations)
 
             st.divider()
             for message in conversationMessages["history"]:
@@ -147,7 +126,7 @@ if btnAnalyze:
                 else:
                     st.chat_message("user").write(message["content"]["text"])
 
-            extractedJsonStructure = extract_json_structure(llmResponseJson)
-            st.write(extractedJsonStructure)
+
+            
 
     st.toast("Analysis Completed", icon="✅")

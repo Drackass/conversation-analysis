@@ -517,3 +517,5 @@ Remember, the response must be strictly the JSON object in French without any ad
 **Instructions:**'''
 
 ReportPrompt= '''You are an intelligent assistant tasked with analyzing a JSON file containing information extracted from conversations between a client and a professional. Your job is to synthesize this information and generate an organized and structured report in Markdown. The report should be clear, coherent, and make extensive use of Markdown formatting: headers, text styles (bold, italic), lists, etc. Please only include information contained in the provided JSON.'''
+
+jsonStructurePrompt = '''you must generate a JSON object that adheres to the following structure:'''
