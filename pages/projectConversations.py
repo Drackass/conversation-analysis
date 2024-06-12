@@ -2,7 +2,7 @@ import streamlit as st
 import datetime
 from src.routes import getAllUsers
 from src.routes import getConversationsByProjectId, getConversationById, sendMessageToLlm, sendCompletionToLlm
-from src.utils import flatten_json, extract_json_structure, formalize_messages, extract_json_object, markdown_to_pdf
+from src.utils import flatten_json, extract_json_structure, formalize_messages, extract_json_object
 from src.prompts import prompts, context, jsonStructurePrompt, reportPrompt
 import openai
 import pandas as pd
