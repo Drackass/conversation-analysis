@@ -203,3 +203,39 @@ llmFlatJson= {
 #   "positive_negative_interactions_percentage_negative_interactions": 30,
 #   "engagement_and_follow_up_percentage": 40
 # }
+
+dummyReport='''# Customer Service Analysis Report
+
+## Conversation Summary
+The conversation addresses a professional client's issue with updating the license plates associated with their telepeage badges. The client explains that the option to update the plates is not available on the page designed for professionals, indicating a need for personalized assistance.
+
+## Customer Evaluation
+- **Precision of Responses:** 8
+- **Relevance of Responses:** 7
+- **Quality of Provided Information:** 8
+- **Richness of Responses:** 7
+
+## Interaction Details
+- **Redundant Information:** No observed redundancy, additional information provided at each step.
+- **Unanswered Questions:** 10%
+- **Response Referral to Customer Service:** 20%
+- **Client Aggressiveness Evaluation:**
+  - Score: 1
+  - Percentage of Aggressive Phrases: 0%
+
+## Resolution of Customer Request
+- **Complete Resolution Score:** 7
+- **Areas for Improvement:** Provide specific details on where the update can be done in the professional user space and ensure all necessary options are easily accessible on the user interface.
+
+## Suggestions for Improvement
+- **Advisor Training:**
+  - Understanding the differences in professional and individual user interfaces.
+  - Training on specific professional scenarios for more targeted and precise solutions.
+- **Personalized Follow-Up:**
+  - Inquire if the client has tried updating through other means.
+  - Explain why certain options may not be visible in the professional space.
+- **Positive/Negative Interactions:** 100% neutral to positive interactions, no negative interactions detected.
+- **Follow-Up Engagement:** 10%
+
+---
+This report analyzes two customer service interactions with professional clients seeking assistance with updating license plates associated with telepeage badges. The clients highlighted the need for personalized support due to the unavailability of the update option on the designated professional page. The evaluation indicates areas of strength and improvement in responses, resolution quality, and suggestions for enhancing customer service experience.'''

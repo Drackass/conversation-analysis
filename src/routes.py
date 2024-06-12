@@ -2,7 +2,7 @@ import requests
 import urllib.parse
 import streamlit as st
 import os
-from src.prompts import ReportPrompt
+from src.prompts import reportPrompt
 
 base_url = "https://genii-api.tolk.ai/v1/"
 

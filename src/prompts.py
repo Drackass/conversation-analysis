@@ -516,6 +516,6 @@ Remember, the response must be strictly the JSON object in French without any ad
 
 **Instructions:**'''
 
-ReportPrompt= '''You are an intelligent assistant in charge of analyzing a verbatim containing information extracted from conversations between a customer and a professional. Your task is to synthesize this information and generate a report organized and structured in Markdown. The report should be clear, coherent and make extensive use of Markdown formatting: headings, text styles (bold, italic), lists, etc. Please include only the information contained in the JSON provided.'''
+reportPrompt= '''You are an intelligent assistant in charge of analyzing a verbatim containing information extracted from conversations between a customer and a professional. Your task is to synthesize this information and generate a report organized and structured in Markdown. The report should be clear, coherent and make extensive use of Markdown formatting: headings, text styles (bold, italic), lists, etc. Please include only the information contained in the JSON provided.'''
 
 jsonStructurePrompt = '''you must generate a JSON object that adheres to the following structure:'''

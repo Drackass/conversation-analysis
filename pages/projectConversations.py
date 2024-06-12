@@ -2,13 +2,14 @@ import streamlit as st
 import datetime
 from src.routes import getAllUsers
 from src.routes import getConversationsByProjectId, getConversationById, sendMessageToLlm, sendCompletionToLlm
-from src.utils import flatten_json, extract_json_structure, formalize_messages, extract_json_object
-from src.prompts import prompts, context, jsonStructurePrompt, ReportPrompt
+from src.utils import flatten_json, extract_json_structure, formalize_messages, extract_json_object, markdown_to_pdf
+from src.prompts import prompts, context, jsonStructurePrompt, reportPrompt
 import openai
 import pandas as pd
 from src.components.sidebar import sidebar
-from src.misc import llmJson
+from src.misc import llmJson, dummyReport
 import json
+import pyperclip
 
 sidebar("Genii • Conversation Analysis | Project Conversations", '🧞 :violet[Genii] • Conversation Analysis', "🔮 Project Conversations Analysis")
 
@@ -49,28 +50,58 @@ else:
     params['sort'] = '[{"field":"date","sort":"desc"}]'
     params['offset'] = 0
 
-customPrompt = st.text_area(
-        label="Enter a prompt to analyze the conversations:",
-        value=prompts[6],
-        height=300,
-    )
-
-modelCol, analyzeCol = st.columns(2)
-
-with modelCol:
+with st.expander('🔎 Analysis Prompts'):
+    customPrompt = st.text_area(
+            label="Enter a prompt to analyze the conversations:",
+            value=prompts[6],
+            height=300,
+        )
     OpenAiApiModel = st.selectbox(
+        "Select a model:",
+        ["gpt-4o", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo", "gpt-3.5"],
+        index=3,
+        label_visibility="collapsed",
+        key="OpenAiApiModel",
+    )
+    
+
+with st.expander('📖 Report Prompts'):
+    customPromptReport = st.text_area(
+            label="Enter a prompt to generate a conversations report:",
+            value=reportPrompt,
+            height=300,
+            key="customPromptReport",
+        )
+    
+    OpenAiApiModelReport = st.selectbox(
         "Select a model:",
         ["gpt-4o", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo", "gpt-3.5"],
         index=3,
         label_visibility="collapsed",
     )
 
-with analyzeCol:
-    btnAnalyze= st.button(
-        "Analyze",
-        use_container_width=True,
-        type="primary",
-        )
+# modelCol, analyzeCol = st.columns(2)
+
+# with modelCol:
+    # OpenAiApiModel = st.selectbox(
+    #     "Select a model:",
+    #     ["gpt-4o", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo", "gpt-3.5"],
+    #     index=3,
+    #     label_visibility="collapsed",
+    # )
+
+# with analyzeCol:
+#     btnAnalyze= st.button(
+#         "Analyze",
+#         use_container_width=True,
+#         type="primary",
+#         )
+
+btnAnalyze= st.button(
+    "Analyze",
+    use_container_width=True,
+    type="primary",
+    )
     
 if btnAnalyze:
     st.divider()
@@ -171,7 +202,7 @@ if btnAnalyze:
         analysisResultsFormated[conversationId] = formatedFlatData
         analysisResults[conversationId] = llmResponseJson
 
-    with st.expander("✅ Conversation Analysis Report"):
+    with st.expander(f'🧠 Report of {f'the {conversationLimit[0]}' if ("Conversation Limit" in filters) else "all"} conversions {f"between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**" if ("Date Range" in filters) else ""} for project **{projectId}**'):
         totalColumnCol, totalProjectRow= st.columns(2)
 
         totalColumnCol.write(f"➡️ Columns :blue-background[**{len(flatData)}**]")
@@ -185,9 +216,14 @@ if btnAnalyze:
 
         with st.spinner("🧠 Generating Report..."):
             with st.container(border=True):
-                reportPrompt = f"{ReportPrompt}\n\n```json\n{json.dumps(analysisResults, indent=2)}\n```"
-                report = sendCompletionToLlm(reportPrompt, OpenAiApiModel, client)
+                reportPromptWithVerbatim = f"{customPromptReport}\n\n```json\n{json.dumps(analysisResults, indent=2)}\n```"
+                report = sendCompletionToLlm(reportPromptWithVerbatim, OpenAiApiModelReport, client)
+                # report = dummyReport
+                with st.popover("Copy"):
+                    st.code(report, language="markdown")
                 st.markdown(report)
-        
 
+
+
+               
     st.toast("Analysis Completed", icon="✅")
