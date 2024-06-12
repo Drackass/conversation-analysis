@@ -202,7 +202,8 @@ if btnAnalyze:
         analysisResultsFormated[conversationId] = formatedFlatData
         analysisResults[conversationId] = llmResponseJson
 
-    with st.expander(f'🧠 Report of {f'the {conversationLimit[0]}' if ("Conversation Limit" in filters) else "all"} conversions {f"between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**" if ("Date Range" in filters) else ""} for project **{projectId}**'):
+
+    with st.expander(f'🧠 Report of {"the " + conversationLimit[0] if ("Conversation Limit" in filters) else "all"} conversions {f"between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**" if ("Date Range" in filters) else ""} for project **{projectId}**'):
         totalColumnCol, totalProjectRow= st.columns(2)
 
         totalColumnCol.write(f"➡️ Columns :blue-background[**{len(flatData)}**]")
