@@ -1,9 +1,6 @@
 import re
 import json
 import streamlit as st
-import markdown
-import pdfkit
-import os
 
 def describe_content(value, indent=0):
     indent_str = '  ' * indent 
@@ -96,27 +93,3 @@ def formalize_messages(json_input):
             formatted_output.append(f"Assistant:\n{entry['content']}\n\n")
     
     return ''.join(formatted_output)
-
-def markdown_to_pdf(markdown_text):
-    # Convertir le Markdown en HTML
-    html_text = markdown.markdown(markdown_text)
-    
-    # Options pour pdfkit
-    options = {
-        'page-size': 'A4',
-        'encoding': 'UTF-8',
-    }
-    
-    # Créer un fichier temporaire pour le HTML
-    html_file = 'temp.html'
-    with open(html_file, 'w') as file:
-        file.write(html_text)
-    
-    # Créer un fichier temporaire pour le PDF
-    pdf_file = 'output.pdf'
-    pdfkit.from_file(html_file, pdf_file, options=options)
-    
-    # Supprimer le fichier HTML temporaire
-    os.remove(html_file)
-    
-    return pdf_file

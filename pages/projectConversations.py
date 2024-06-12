@@ -9,7 +9,6 @@ import pandas as pd
 from src.components.sidebar import sidebar
 from src.misc import llmJson, dummyReport
 import json
-import pyperclip
 
 sidebar("Genii • Conversation Analysis | Project Conversations", '🧞 :violet[Genii] • Conversation Analysis', "🔮 Project Conversations Analysis")
 
