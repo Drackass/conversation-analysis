@@ -1,7 +1,8 @@
+import asyncio
 import streamlit as st
 import datetime
 from src.routes import getAllUsers
-from src.routes import getConversationsByProjectId, getConversationById, sendMessageToLlm, sendCompletionToLlm
+from src.routes import getConversationsByProjectId, getConversationById, sendMessageToLlm, sendCompletionToLlm, generateReport
 from src.utils import flatten_json, extract_json_structure, formalize_messages, extract_json_object
 from src.prompts import prompts, context, jsonStructurePrompt, reportPrompt
 import openai
@@ -9,6 +10,7 @@ import pandas as pd
 from src.components.sidebar import sidebar
 from src.misc import llmJson, dummyReport
 import json
+from openai import AsyncOpenAI
 
 sidebar("Genii • Conversation Analysis | Project Conversations", '🧞 :violet[Genii] • Conversation Analysis', "🔮 Project Conversations Analysis")
 
@@ -62,7 +64,6 @@ with st.expander('🔎 Analysis Prompts'):
         label_visibility="collapsed",
         key="OpenAiApiModel",
     )
-    
 
 with st.expander('📖 Report Prompts'):
     customPromptReport = st.text_area(
@@ -79,23 +80,6 @@ with st.expander('📖 Report Prompts'):
         label_visibility="collapsed",
     )
 
-# modelCol, analyzeCol = st.columns(2)
-
-# with modelCol:
-    # OpenAiApiModel = st.selectbox(
-    #     "Select a model:",
-    #     ["gpt-4o", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo", "gpt-3.5"],
-    #     index=3,
-    #     label_visibility="collapsed",
-    # )
-
-# with analyzeCol:
-#     btnAnalyze= st.button(
-#         "Analyze",
-#         use_container_width=True,
-#         type="primary",
-#         )
-
 btnAnalyze= st.button(
     "Analyze",
     use_container_width=True,
@@ -105,9 +89,11 @@ btnAnalyze= st.button(
 if btnAnalyze:
     st.divider()
 
-    client = openai.OpenAI(
-      api_key=st.secrets["OPENAI_API_KEY"],
-    )
+    # client = openai.OpenAI(
+    #   api_key=st.secrets["OPENAI_API_KEY"],
+    # )
+
+    client = AsyncOpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
     conversationsAnalysis = []
     with st.spinner(f'Fetching {conversationLimit[0] if ("Conversation Limit" in filters) else "all"} conversions {f"between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**" if ("Date Range" in filters) else ""} for project **{projectId}**'):
@@ -145,10 +131,10 @@ if btnAnalyze:
                         messages.append({"role": "user", "content": message["content"]["text"]})
                 st.write(f"Sending conversation to {OpenAiApiModel}...")
                 try:
-                    llmResponse = sendMessageToLlm(messages, OpenAiApiModel, client)
+                    # llmResponse = sendMessageToLlm(messages, OpenAiApiModel, client)
                     try:
-                        llmResponseJson = extract_json_object(llmResponse)
-                        # llmResponseJson = llmJson
+                        # llmResponseJson = extract_json_object(llmResponse)
+                        llmResponseJson = llmJson
                     except Exception as e:
                         error = f"Error Parsing {OpenAiApiModel} response in json: {e}"
                 except Exception as e:
@@ -214,16 +200,13 @@ if btnAnalyze:
 
         st.divider()
 
-        with st.spinner("🧠 Generating Report..."):
-            with st.container(border=True):
-                reportPromptWithVerbatim = f"{customPromptReport}\n\n```json\n{json.dumps(analysisResults, indent=2)}\n```"
-                report = sendCompletionToLlm(reportPromptWithVerbatim, OpenAiApiModelReport, client)
-                # report = dummyReport
-                with st.popover("Copy"):
-                    st.code(report, language="markdown")
-                st.markdown(report)
+        # async def main():
+        #     await asyncio.gather(
+        #         generateReport(reportPromptWithVerbatim, OpenAiApiModelReport, client, reportContainer),
+        #     )
 
+        reportPromptWithVerbatim = f"{customPromptReport}\n\n```json\n{json.dumps(analysisResults, indent=2)}\n```"
+        reportContainer = st.container(border=True).empty()
+        asyncio.run(generateReport(reportPromptWithVerbatim, OpenAiApiModelReport, client, reportContainer))
 
-
-               
     st.toast("Analysis Completed", icon="✅")
