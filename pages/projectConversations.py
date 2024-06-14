@@ -1,4 +1,6 @@
 import asyncio
+import math
+import time
 import streamlit as st
 import datetime
 from src.routes import getAllUsers
@@ -36,7 +38,7 @@ if "Conversation Limit" in filters:
     with st.container(border=True):
             conversationLimit = st.select_slider(
             "Select a conversations limit",
-            options= range(1, 21),
+            options= range(1, 201),
             value=5,
         ),
     params['limit'] = conversationLimit[0]
@@ -81,6 +83,9 @@ with st.expander('📖 Report Prompts'):
         label_visibility="collapsed",
     )
 
+with st.expander('⚙️ Advanced Settings'):
+    toggleShowConversations = st.toggle("Show Conversations", True)
+    toogleReportByConversation = st.toggle("Report by Conversation", False)
 
 btnAnalyze= st.button(
     "Analyze",
@@ -92,6 +97,40 @@ client_asynchrone = AsyncOpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 client_synchrone = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
     
 if btnAnalyze:
+
+    # st.divider()
+
+    # analysisStatus = st.empty()
+
+    # with analysisStatus.status(f"🔍 Analysis of {conversationLimit[0] if ("Conversation Limit" in filters) else 'all'} conversations {f'between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**' if ("Date Range" in filters) else ''} for project **{projectId}**", expanded=True):
+    #     st.write(f"📦 Sending a request to {OpenAiApiModel} to get the json structure of the analysis...")
+    #     time.sleep(3)
+    #     st.write(f"💬 Fetching {conversationLimit[0] if ('Conversation Limit' in filters) else 'all'} conversions {f'between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**' if ('Date Range' in filters) else ''} for project **{projectId}**")
+    #     time.sleep(3)
+    #     st.write(f"🔎 Sending each conversation to {OpenAiApiModel} for analysis...")
+    #     time.sleep(3)
+    #     # my_bar = st.progress(20,text="")
+    #     # for percent_complete in range(100):
+    #     #     time.sleep(0.1)
+    #     #     my_bar.progress(percent_complete + 1, text=f"Analyzing {percent_complete + 1}%")
+
+    #     my_bar = st.progress(0)
+    #     for conversationAnalysed in range(conversationLimit[0]):
+    #         time.sleep(1)
+    #         my_bar.progress(math.ceil(((conversationAnalysed + 1) * 100)/conversationLimit[0]), text=f"🔮 {conversationAnalysed + 1}/{conversationLimit[0]} Conversations Analysed")
+        
+    # analysisStatus.empty()
+
+    # with st.expander(f'📚 Report of {"the " + str(conversationLimit[0]) if ("Conversation Limit" in filters) else "all"} conversions {f"between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**" if ("Date Range" in filters) else ""} for project **{projectId}**'):
+    #     st.write(dummyReport)
+
+    # with st.expander(f'🔮 Analysis of {"the " + str(conversationLimit[0]) if ("Conversation Limit" in filters) else "all"} conversions {f"between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**" if ("Date Range" in filters) else ""} for project **{projectId}**'):
+    #     st.write(llmJson)
+    # with st.expander(f'🔮 Analysis of {"the " + str(conversationLimit[0]) if ("Conversation Limit" in filters) else "all"} conversions {f"between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**" if ("Date Range" in filters) else ""} for project **{projectId}**'):
+    #     st.write(llmJson)
+    # with st.expander(f'🔮 Analysis of {"the " + str(conversationLimit[0]) if ("Conversation Limit" in filters) else "all"} conversions {f"between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**" if ("Date Range" in filters) else ""} for project **{projectId}**'):
+    #     st.write(llmJson)
+
     st.divider()
 
     refJsonFormat = ""
@@ -202,12 +241,7 @@ if btnAnalyze:
 
     asyncio.run(conversationsAnalysisTasks())
 
-    with st.expander(f'🧠 Report of {"the " + str(conversationLimit[0]) if ("Conversation Limit" in filters) else "all"} conversions {f"between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**" if ("Date Range" in filters) else ""} for project **{projectId}**'):
-        totalColumnCol, totalProjectRow= st.columns(2)
-
-        totalColumnCol.write(f"➡️ Columns :blue-background[**{len(flatData)}**]")
-        totalProjectRow.write(f"⬇️ Row :blue-background[**{len(conversations['data'])}**]")
-
+    with st.expander(f'📚 Report of {"the " + str(conversationLimit[0]) if ("Conversation Limit" in filters) else "all"} conversions {f"between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**" if ("Date Range" in filters) else ""} for project **{projectId}**'):
         formatedFlatData = {key.replace("_", " ").replace("-", " > "): value for key, value in flatData.items()}
         df = pd.DataFrame(analysisResultsFormated).T
         st.write(df)
