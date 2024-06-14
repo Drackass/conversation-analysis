@@ -4,13 +4,14 @@ import datetime
 from src.routes import getAllUsers
 from src.routes import getConversationsByProjectId, getConversationById, sendMessageToLlm, sendCompletionToLlm, generateReport
 from src.utils import flatten_json, extract_json_structure, formalize_messages, extract_json_object
-from src.prompts import prompts, context, jsonStructurePrompt, reportPrompt
+from src.prompts import prompts, context, jsonStructurePrompt, reportPrompt, refJsonStructurePrompt
 import openai
 import pandas as pd
 from src.components.sidebar import sidebar
 from src.misc import llmJson, dummyReport
 import json
 from openai import AsyncOpenAI
+import asyncio
 
 sidebar("Genii • Conversation Analysis | Project Conversations", '🧞 :violet[Genii] • Conversation Analysis', "🔮 Project Conversations Analysis")
 
@@ -80,20 +81,34 @@ with st.expander('📖 Report Prompts'):
         label_visibility="collapsed",
     )
 
+
 btnAnalyze= st.button(
     "Analyze",
     use_container_width=True,
     type="primary",
     )
+
+client_asynchrone = AsyncOpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+client_synchrone = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
     
 if btnAnalyze:
     st.divider()
 
-    # client = openai.OpenAI(
-    #   api_key=st.secrets["OPENAI_API_KEY"],
-    # )
+    refJsonFormat = ""
+    with st.spinner(f"Sending a request to {OpenAiApiModel} to get the structure of the analysis..."):
+        try:
+            llmResponse= sendCompletionToLlm(f"{refJsonStructurePrompt}\n{customPrompt}", OpenAiApiModel, client_synchrone)
 
-    client = AsyncOpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+            try:
+                extractedJsonStructure = extract_json_object(llmResponse)
+                refJsonStructure = extract_json_structure(extractedJsonStructure)
+                st.success(f"Received the structure of the analysis from {OpenAiApiModel} successfully", icon='✅')
+            except Exception as e:
+                st.error(f"❌ Error Parsing {OpenAiApiModel} response in json: {e}")
+                st.stop()
+        except Exception as e:
+            st.error(f"❌ Error Sending a request to {OpenAiApiModel} to get the structure of the analysis: {e}")
+            st.stop()
 
     conversationsAnalysis = []
     with st.spinner(f'Fetching {conversationLimit[0] if ("Conversation Limit" in filters) else "all"} conversions {f"between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**" if ("Date Range" in filters) else ""} for project **{projectId}**'):
@@ -104,59 +119,49 @@ if btnAnalyze:
             st.error(f"❌ Error Fetching {conversationLimit[0] if ('Conversation Limit' in filters) else 'all'} conversions {f'between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**' if ('Date Range' in filters) else ''} for project **{projectId}**: {e}")
             st.stop()
     
-
-    indexConversation = 1
-    analysisResultsFormated = {}
-    analysisResults= {}
-    refJsonFormatPrompt = ""
-    for conversation in conversations["data"]:
-        
+    async def conversationAnalysis(conversation):
         conversationId = conversation["id"] 
         error = ""
         analysis = st.empty()
 
-        with analysis.status(f"🔎 {indexConversation}. {conversation['summary']} : {conversationId}", expanded=True) as status:
+        with analysis.status(f"🔎 {conversation['summary']} : {conversationId}", expanded=False):
             st.write("analyzing conversation...")
-            try:
-                conversationMessages = getConversationById(projectId, conversationId)
 
-                analysisPrompt = f"{context}\n{customPrompt}"
-                if refJsonFormatPrompt:
-                    analysisPrompt += f"\n\n{refJsonFormatPrompt}"
+            try:
+                conversationMessages = await getConversationById(projectId, conversationId)
+
+                analysisPrompt = f"{context}\n{customPrompt}\n\n{jsonStructurePrompt}\n\n```json\n{json.dumps(refJsonStructure, indent=2)}\n```"
                 messages=[{"role": "system", "content": analysisPrompt}]
                 for message in conversationMessages["history"]:
                     if message["sender"] == projectId:
                         messages.append({"role": "assistant", "content": message["content"]["text"]})
                     else:
                         messages.append({"role": "user", "content": message["content"]["text"]})
+
                 st.write(f"Sending conversation to {OpenAiApiModel}...")
                 try:
-                    # llmResponse = sendMessageToLlm(messages, OpenAiApiModel, client)
+                    llmResponse = await sendMessageToLlm(messages, OpenAiApiModel, client_asynchrone)
                     try:
-                        # llmResponseJson = extract_json_object(llmResponse)
-                        llmResponseJson = llmJson
+                        llmResponseJson = extract_json_object(llmResponse)
+                        # llmResponseJson = llmJson
                     except Exception as e:
                         error = f"Error Parsing {OpenAiApiModel} response in json: {e}"
+
                 except Exception as e:
                     error = f"Error Sending conversation **{conversationId}** to {OpenAiApiModel}: {e}"
-                    
+            
             except Exception as e:
                 error = f"Error Fetching conversation **{conversationId}**: {e}"
 
         analysis.empty()
         if error:
             st.error(error, icon='❌')
-            indexConversation += 1
         else:
-            with st.expander(f"🔮 {indexConversation}. {conversation['summary']} : {conversationId}"):
-                jsonStructure = extract_json_structure(llmResponseJson)
-
+            with st.expander(f"🔮 {conversation['summary']} : {conversationId}"):
                 flatData = flatten_json(llmResponseJson)
 
                 formatedMessages = formalize_messages(messages)
                 flatData["conversation"] = formatedMessages
-
-                refJsonFormatPrompt = f"{jsonStructurePrompt}\n\n```json\n{json.dumps(jsonStructure, indent=2)}\n```"
 
                 totalInsightCol, totalColumnCol, totalProjectRow, TotalMessageCol= st.columns(4)
 
@@ -170,7 +175,6 @@ if btnAnalyze:
                 dataConversation = {}
                 dataConversation[conversationId] = formatedFlatData
 
-
                 dfConversations = pd.DataFrame(dataConversation).T
 
                 st.write(dfConversations)
@@ -181,12 +185,22 @@ if btnAnalyze:
                         st.chat_message("assistant").write(message["content"]["text"])
                     else:
                         st.chat_message("user").write(message["content"]["text"])
-                        
-                indexConversation += 1
 
         analysisResultsFormated[conversationId] = formatedFlatData
         analysisResults[conversationId] = llmResponseJson
 
+    analysisResultsFormated = {}
+    analysisResults = {}
+    flatData = {}
+    async def conversationsAnalysisTasks():
+        global analysisResultsFormated, analysisResults, flatData, refJsonStructure
+        tasks = []
+        for conversation in conversations["data"]:
+            task = conversationAnalysis(conversation)
+            tasks.append(task)
+        await asyncio.gather(*tasks)
+
+    asyncio.run(conversationsAnalysisTasks())
 
     with st.expander(f'🧠 Report of {"the " + str(conversationLimit[0]) if ("Conversation Limit" in filters) else "all"} conversions {f"between **{conversationDateRange[0]}** and **{conversationDateRange[1]}**" if ("Date Range" in filters) else ""} for project **{projectId}**'):
         totalColumnCol, totalProjectRow= st.columns(2)
@@ -200,13 +214,9 @@ if btnAnalyze:
 
         st.divider()
 
-        # async def main():
-        #     await asyncio.gather(
-        #         generateReport(reportPromptWithVerbatim, OpenAiApiModelReport, client, reportContainer),
-        #     )
-
         reportPromptWithVerbatim = f"{customPromptReport}\n\n```json\n{json.dumps(analysisResults, indent=2)}\n```"
         reportContainer = st.container(border=True).empty()
-        asyncio.run(generateReport(reportPromptWithVerbatim, OpenAiApiModelReport, client, reportContainer))
+
+        generateReport(reportPromptWithVerbatim, OpenAiApiModelReport, client_synchrone, reportContainer)
 
     st.toast("Analysis Completed", icon="✅")

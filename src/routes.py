@@ -5,6 +5,7 @@ import os
 from src.prompts import reportPrompt
 import asyncio
 from openai import AsyncOpenAI
+import aiohttp
 
 base_url = "https://genii-api.tolk.ai/v1/"
 
@@ -19,13 +20,19 @@ def getConversationsByProjectId(projectId, params):
     response = requests.get(f"{url}?{encodedParams}")
     return response.json()
 
-def getConversationById(projectId, conversationId):
-    url = f"{base_url}projects/{projectId}/conversations/{conversationId}/messages"
-    response = requests.get(url)
-    return response.json()
+# async def getConversationById(projectId, conversationId):
+#     url = f"{base_url}projects/{projectId}/conversations/{conversationId}/messages"
+#     response = await requests.get(url)
+#     return response.json()
 
-def sendMessageToLlm(messages, model_name, client):
-    response = client.chat.completions.create(
+async def getConversationById(projectId, conversationId):
+    url = f"{base_url}projects/{projectId}/conversations/{conversationId}/messages"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            return await response.json()
+        
+async def sendMessageToLlm(messages, model_name, client):
+    response = await client.chat.completions.create(
         model=model_name,
         messages=messages,
     )
@@ -38,28 +45,14 @@ def sendCompletionToLlm(prompt, model_name, client):
     )
     return response.choices[0].message.content
 
-# sendCompletionToLlmWithStream
-# def sendCompletionToLlmWithStream(prompt, model_name, client):
-#     response = client.chat.completions.create(
-#         model=model_name,
-#         messages=[{"role": "system", "content": prompt}],
-#         stream=True
-#     )
-
-#     for chunk in response:
-#         print(chunk)
-#         print(chunk.choices[0].delta.content)
-#         print("****************")
-
-
-async def generateReport(prompt, model_name, client, placeholder):
-    stream = await client.chat.completions.create(
+def generateReport(prompt, model_name, client, placeholder):
+    stream = client.chat.completions.create(
         model=model_name,
         messages=[{"role": "system", "content": prompt}],
         stream=True
     )
     streamed_text = ""
-    async for chunk in stream:
+    for chunk in stream:
         chunk_content = chunk.choices[0].delta.content
         if chunk_content is not None:
             streamed_text += chunk_content
