@@ -239,3 +239,79 @@ The conversation addresses a professional client's issue with updating the licen
 
 ---
 This report analyzes two customer service interactions with professional clients seeking assistance with updating license plates associated with telepeage badges. The clients highlighted the need for personalized support due to the unavailability of the update option on the designated professional page. The evaluation indicates areas of strength and improvement in responses, resolution quality, and suggestions for enhancing customer service experience.'''
+
+
+jsonFilterTest= '''{
+  "1": {
+    "conversation_theme": "Information sur les services de gestion de projets",
+    "client_intention": "Obtenir des informations sur les services de gestion de projets",
+    "relevant_elements": "Les services offerts, les processus de gestion de projets, les tarifs, la dur\u00e9e du projet du client",
+    "highlights": "Le client recherche des informations sur la gestion de projets pour un projet de d\u00e9veloppement logiciel de 6 mois",
+    "pain_points": [],
+    "conversation_category": "Opportunit\u00e9 commerciale",
+    "evaluation": {
+      "answer_accuracy_score": 900000,
+      "answer_relevance_score": 10,
+      "information_quality_score": 9,
+      "richness_of_answers_score": 8,
+      "redundancy_of_information": "",
+      "website_or_customer_service_redirect_proportion": 0,
+      "client_aggressiveness_score": 0,
+      "unanswered_questions_proportion": 0,
+      "personalization_of_advice_score": 7,
+      "resolution_completion_score": 8
+    },
+    "improvement_actions": {
+      "training_for_advisors": [
+        "Familiarit\u00e9 approfondie avec la tarification des projets de diff\u00e9rentes tailles et complexit\u00e9s."
+      ],
+      "personalization_and_follow_up": [
+        "Poser des questions sp\u00e9cifiques pour mieux comprendre les besoins du client et personnaliser les recommandations."
+      ],
+      "positive_and_negative_interactions": {
+        "positive_interaction_percentage": 100,
+        "negative_interaction_percentage": 0
+      },
+      "engagement_and_follow_up": {
+        "follow-up_percentage": 0
+      }
+    }
+  },
+  "2": {
+    "conversation_theme": "Demande de devis pour un projet professionnel",
+    "client_intention": "Obtenir des informations sur le devis pour le projet",
+    "relevant_elements": "Le client demande un devis pour un projet professionnel et fournit son adresse email pour recevoir les d\u00e9tails.",
+    "highlights": "Le client cherche des informations sur le co\u00fbt du projet et fournit son adresse email pour recevoir un devis. Le conseiller s'engage \u00e0 envoyer les informations demand\u00e9es et propose une ouverture pour d'autres questions. La conversation est courte et cordiale, se terminant par des remerciements de la part du client.",
+    "pain_points": [],
+    "conversation_category": "Opportunit\u00e9 commerciale",
+    "evaluation": {
+      "answer_accuracy_score": 8,
+      "answer_relevance_score": 9,
+      "information_quality_score": 8,
+      "richness_of_answers_score": 7,
+      "redundancy_of_information": "",
+      "website_or_customer_service_redirect_proportion": 0,
+      "client_aggressiveness_score": 0,
+      "unanswered_questions_proportion": 0,
+      "personalization_of_advice_score": 7,
+      "resolution_completion_score": 9
+    },
+    "improvement_actions": {
+      "training_for_advisors": [
+        "Sensibilisation sur la personnalisation des r\u00e9ponses et la richesse des informations fournies.",
+        "Formation sur la mani\u00e8re de proposer des sujets connexes pour approfondir l'interaction avec le client."
+      ],
+      "personalization_and_follow_up": [
+        "Poser des questions cibl\u00e9es pour comprendre les besoins sp\u00e9cifiques du client et adapter les recommandations en cons\u00e9quence.",
+        "Approfondir les connaissances sur les services offerts pour r\u00e9pondre de mani\u00e8re plus approfondie aux demandes des clients."
+      ],
+      "positive_and_negative_interactions": {
+        "positive_interaction_percentage": 100,
+        "negative_interaction_percentage": 0
+      },
+      "engagement_and_follow_up": {
+        "follow-up_percentage": 0
+      }
+    }
+  }
+}'''

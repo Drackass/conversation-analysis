@@ -83,9 +83,9 @@ with st.expander('📖 Report Prompts'):
         label_visibility="collapsed",
     )
 
-with st.expander('⚙️ Advanced Settings'):
-    toggleShowConversations = st.toggle("Show Conversations", True)
-    toogleReportByConversation = st.toggle("Report by Conversation", False)
+# with st.expander('⚙️ Advanced Settings'):
+#     toggleShowConversations = st.toggle("Show Conversations", True)
+#     toogleReportByConversation = st.toggle("Report by Conversation", False)
 
 btnAnalyze= st.button(
     "Analyze",

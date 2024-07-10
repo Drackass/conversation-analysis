@@ -433,6 +433,7 @@ Ensuite, tu dois jouer le role de coach et proposer et décrire les actions conc
 4. *Engagement et suivi:*
    - Observer si le conseiller offre un suivi ou des conseils supplémentaires pour résoudre les questions du client.
    - Méthode de mesure: pourcentage de conversations incluant un suivi ou des conseils supplémentaires.''',
+   
 '''You are an artificial intelligence expert specializing in comprehensive conversation analysis. Your task is to analyze a conversation between a professional and a client. The conversation will be provided below. Extract and structure the main information in the specified JSON format in English. This format should include crucial insights beyond the conversation itself, encompassing emotions, service quality, externalities, potential solutions, risks, behavior, and the use of personal information, among others.
 
 **Important Instructions:**

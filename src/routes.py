@@ -8,11 +8,20 @@ from openai import AsyncOpenAI
 import aiohttp
 
 base_url = "https://genii-api.tolk.ai/v1/"
+# # cette route et protégé par un barear token qui dans etre transmis au call en tant que auth
 
 def getAllUsers():
     url = f"{base_url}users/{st.secrets['ADMIN_USER_ID']}/user-infos"
-    response = requests.get(url)
+    headers = {
+        "Authorization": f"Bearer {st.secrets['AUTH_TOKEN']}"
+    }
+    response = requests.get(url, headers=headers)
     return response.json()
+
+# def getAllUsers():
+#     url = f"{base_url}users/{st.secrets['ADMIN_USER_ID']}/user-infos"
+#     response = requests.get(url)
+#     return response.json()
 
 def getConversationsByProjectId(projectId, params):
     url = f"{base_url}projects/{projectId}/conversations"
