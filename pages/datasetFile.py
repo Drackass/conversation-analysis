@@ -96,6 +96,9 @@ with st.expander('📖 Report Prompts'):
         label_visibility="collapsed",
     )
 
+if 'btn_analyze_clicked' not in st.session_state:
+    st.session_state['btn_analyze_clicked'] = False
+
 btnAnalyze= st.button(
     "Analyze",
     use_container_width=True,
@@ -103,10 +106,13 @@ btnAnalyze= st.button(
     disabled=uploaded_file is None,
     )
 
+if btnAnalyze:
+    st.session_state['btn_analyze_clicked'] = True
+
 client_asynchrone = openai.AsyncOpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 client_synchrone = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
     
-if btnAnalyze:
+if st.session_state['btn_analyze_clicked']:
     st.divider()
     refJsonFormat = ""
     with st.spinner(f"Sending a request to {OpenAiApiModel} to get the structure of the analysis..."):

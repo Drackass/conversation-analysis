@@ -250,7 +250,7 @@ jsonFilterTest= '''{
     "pain_points": [],
     "conversation_category": "Opportunit\u00e9 commerciale",
     "evaluation": {
-      "answer_accuracy_score": 900000,
+      "answer_accuracy_score": 9,
       "answer_relevance_score": 10,
       "information_quality_score": 9,
       "richness_of_answers_score": 8,
