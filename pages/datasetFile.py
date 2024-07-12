@@ -89,7 +89,7 @@ with st.expander('📖 Report Prompts'):
     OpenAiApiModelReport = st.selectbox(
         "Select a model:",
         ["gpt-4o", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo", "gpt-3.5"],
-        index=3,
+        index=1,
         label_visibility="collapsed",
     )
 
