@@ -1,8 +1,0 @@
-- categorie : (string en 2 mots max)
-- precision : (int between 0 and 10)
-- pertinence : (int between 0 and 10)
-- qualite : (int between 0 and 10)
-- richesse : (int between 0 and 10)
-- redondance : (int between 0 and 10)
-- personnalisation : (int between 0 and 10)
-- escalade : (string like "Non",  "Renvoi email",  "Renvoi téléphone")
