@@ -69,3 +69,5 @@ def generateReport(prompt, model_name, client, placeholder):
 
     with st.popover("Copy"):
         st.code(streamed_text, language="markdown")
+
+    return streamed_text

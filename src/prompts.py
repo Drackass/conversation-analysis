@@ -503,7 +503,7 @@ The response should only include the JSON object with the analyzed values. The e
 Remember, the response must be strictly the JSON object in English without any additional formatting or encapsulation.'''
 ]
 
-context = '''You are an artificial intelligence expert specializing in comprehensive conversation analysis. Your task is to analyze a conversation between a professional and a client. The conversation will be provided below. Extract and structure the main information in the specified JSON format in French. This format should include crucial insights beyond the conversation itself, encompassing emotions, service quality, externalities, potential solutions, risks, behavior, and the use of personal information, among others.
+context = '''You are an artificial intelligence expert specializing in comprehensive conversation analysis. Your task is to analyze a conversation between a professional and a client. The conversation will be provided below. Extract and structure the main information in the specified JSON format in French. This format should include crucial insights beyond the conversation itself.
 
 **Rules:**
 1. **Respond only in the given JSON format.**
@@ -515,9 +515,9 @@ context = '''You are an artificial intelligence expert specializing in comprehen
 
 Remember, the response must be strictly the JSON object in French without any additional formatting or encapsulation.
 
-**Instructions:**'''
+**Insights:**'''
 
-reportPrompt= '''You are an intelligent assistant in charge of analyzing a verbatim containing information extracted from conversations between a customer and a professional. Your task is to synthesize this information and generate a report organized and structured in Markdown. The report should be clear, coherent and make extensive use of Markdown formatting: headings, text styles (bold, italic), lists, etc. Please include only the information contained in the JSON provided, do not describe your output.'''
+reportPrompt= '''You're an intelligent assistant data analyst tasked with analyzing a verbatim report containing information extracted from conversations between a customer and a professional. Your task is to synthesize this information and produce a general report to include the trend of extracted insights, summarized, organized and structured in Markdown, don't go into detail for each analysis, just analyze an average and the trends. The report should be clear, coherent and make extensive use of Markdown formatting: headings, text styles (bold, italic), lists, etc. Please include only the information contained in the JSON provided, do not describe your output and answer in French.'''
 
 jsonStructurePrompt = '''you must generate a JSON object that adheres to the following structure:'''
 
@@ -526,3 +526,11 @@ Your task will be to provide an appropriate, valid and complete JSON output stru
 
 **Required Insights:**'''
 
+protoprompt = '''- categorie : (string en 2 mots max)
+- precision : (int between 0 and 10)
+- pertinence : (int between 0 and 10)
+- qualite : (int between 0 and 10)
+- richesse : (int between 0 and 10)
+- redondance : (int between 0 and 10)
+- personnalisation : (int between 0 and 10)
+- escalade : (string like "Non",  "Renvoi email",  "Renvoi téléphone")'''
