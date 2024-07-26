@@ -9,6 +9,12 @@ from pandas.api.types import (
 )
 import pandas as pd
 
+import pandas as pd
+import tiktoken
+import streamlit as st
+
+from src.other.embeddings_utils import get_embedding
+
 def describe_content(value, indent=0):
     indent_str = '  ' * indent 
     if isinstance(value, str):
@@ -121,6 +127,9 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     modify = st.checkbox("Add filters", key="modify_checkbox")
 
     if not modify:
+        rowCol, colCol = st.columns(2)
+        rowCol.write(f"➡️ Rows :blue-background[**{len(df)}**]")
+        colCol.write(f"➡️ Columns :blue-background[**{len(df.columns)}**]")
         st.dataframe(df)
     else:
 
@@ -184,8 +193,71 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                         if user_text_input:
                             df = df[df[column].astype(str).str.contains(user_text_input)]
 
+            rowCol, colCol = st.columns(2)
+            rowCol.write(f"➡️ Rows :blue-background[**{len(df)}**]")
+            colCol.write(f"➡️ Columns :blue-background[**{len(df.columns)}**]")
             st.dataframe(df)
+
         except KeyError:
+            rowCol, colCol = st.columns(2)
+            rowCol.write(f"➡️ Rows :blue-background[**{len(df)}**]")
+            colCol.write(f"➡️ Columns :blue-background[**{len(df.columns)}**]")
             st.dataframe(df[df.columns[df.isnull().any()]])
+
                 
 
+def generate_embeddings():
+    embedding_model = "text-embedding-3-small"
+    embedding_encoding = "cl100k_base"
+    max_tokens = 8000  # the maximum for text-embedding-3-small is 8191
+
+    # load & inspect dataset
+    input_datapath = "Reviews.csv"  # to save space, we provide a pre-filtered dataset
+    df = pd.read_csv(input_datapath, index_col=0)
+    df = df[["Time", "ProductId", "UserId", "Score", "Summary", "Text"]]
+    df = df.dropna()
+    df["combined"] = (
+        "Title: " + df.Summary.str.strip() + "; Content: " + df.Text.str.strip()
+    )
+    # df.head(2)
+
+    st.write("Dataset Preview:")
+    st.dataframe(df.head(2))
+
+    # subsample to 1k most recent reviews and remove samples that are too long
+    top_n = 1000
+    df = df.sort_values("Time").tail(top_n * 2)  # first cut to first 2k entries, assuming less than half will be filtered out
+    df.drop("Time", axis=1, inplace=True)
+
+    encoding = tiktoken.get_encoding(embedding_encoding)
+
+    # omit reviews that are too long to embed
+    df["n_tokens"] = df.combined.apply(lambda x: len(encoding.encode(x)))
+    df = df[df.n_tokens <= max_tokens].tail(top_n)
+    st.write(f"Number of reviews after filtering: {len(df)}")
+
+    # Ensure you have your API key set in your environment per the README: https://github.com/openai/openai-python#usage
+
+    # This may take a few minutes
+    df["embedding"] = df.combined.apply(lambda x: get_embedding(x, model=embedding_model))
+    df.to_csv("data/fine_food_reviews_with_embeddings_1k.csv")
+
+    a = get_embedding("hi", model=embedding_model)
+
+    st.write(a)
+
+    def extraire_json(chaine):
+        # Utiliser une expression régulière pour trouver le JSON dans la chaîne
+        # Cette expression cherche des chaînes qui ressemblent à des objets JSON
+        pattern = re.compile(r'(\{.*?\})', re.DOTALL)
+        match = pattern.search(chaine)
+
+        if match:
+            json_str = match.group(1)
+            try:
+                # Charger le JSON extrait
+                return json.loads(json_str)
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Erreur de décodage JSON: {e}")
+        else:
+            raise ValueError("Aucun JSON valide trouvé dans la chaîne.")

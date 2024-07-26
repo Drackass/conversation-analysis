@@ -526,7 +526,9 @@ Your task will be to provide an appropriate, valid and complete JSON output stru
 
 **Required Insights:**'''
 
-protoprompt = '''- categorie : (string en 2 mots max)
+protoprompt = '''- categorie : (string en 1 mots max)
+- theme : (string en 2 mots max)
+- sujet : (string en 3 mots max)
 - precision : (int between 0 and 10)
 - pertinence : (int between 0 and 10)
 - qualite : (int between 0 and 10)

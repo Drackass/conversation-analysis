@@ -2,26 +2,66 @@ from io import StringIO
 import json
 import streamlit as st
 import pandas as pd
-from src.routes import getConversationById, sendCompletionToLlm, sendMessageToLlm
-from src.utils import extract_json_object, filter_dataframe
-from src.prompts import prompts
-import openai
 from src.components.sidebar import sidebar
 import asyncio
-import streamlit as st
 from src.routes import getConversationsByProjectId, getConversationById, sendMessageToLlm, sendCompletionToLlm, generateReport
-from src.utils import flatten_json, extract_json_structure, formalize_messages, extract_json_object
+from src.utils import flatten_json, extract_json_structure, formalize_messages, extract_json_object, filter_dataframe
 from src.prompts import prompts, context, jsonStructurePrompt, reportPrompt, refJsonStructurePrompt, protoprompt
 import openai
-import pandas as pd
-from src.components.sidebar import sidebar
-import json
-import asyncio
-import datetime
+import altair as alt
+from vega_datasets import data
+
+import tiktoken
+from src.other.embeddings_utils import get_embedding
+import numpy as np
+from sklearn.manifold import TSNE
+from ast import literal_eval
+import plotly.express as px
+from src.other.chart import generate_embedding, filter_similar_embeddings, generate_tsne_chart, normalize_themes, generate_bubble_chart_from_prompt, generate_bubble_chart
+
 
 sidebar("Genii • Conversation Analysis | DatasetFile", '🧞 :violet[Genii] • Conversation Analysis', "📄 Dataset File Analysis")
 
-# exemple de structure a avoir pour le fichier csv
+
+def generateEmbedding(dataframe, column, embedding_model="text-embedding-3-small", max_tokens=8000, embedding_encoding="cl100k_base", top_n=1000):
+    themes = dataframe.tail(top_n * 2)
+    encoding = tiktoken.get_encoding(embedding_encoding)
+    themes["n_tokens"] = themes[column].apply(lambda x: len(encoding.encode(x)))
+    themes = themes[themes.n_tokens <= max_tokens].tail(top_n)
+    themes["embedding"] = themes[column].apply(lambda x: get_embedding(x, model=embedding_model))
+    
+    # Calculate similarity between embeddings
+    embeddings = np.array(themes["embedding"].to_list())
+    similarity_matrix = np.dot(embeddings, embeddings.T)
+    np.fill_diagonal(similarity_matrix, 0)  # Set diagonal elements to 0 to avoid self-similarity
+    
+    # Remove occurrences with high similarity
+    threshold = 0.9  # Set the threshold for similarity
+    similar_occurrences = np.where(similarity_matrix > threshold)
+    unique_occurrences = np.unique(similar_occurrences[0])
+    themes = themes.drop(themes.index[unique_occurrences[1:]]).reset_index(drop=True)
+    
+    themes["id"] = themes.index + 1
+    
+    return themes
+
+@st.experimental_fragment
+def generateChart(dfWithEmbedding):
+    dataframe = pd.read_csv(StringIO(dfWithEmbedding.to_csv(index=False)))
+    matrix = np.array(dataframe.embedding.apply(literal_eval).to_list())
+    # Check the number of samples in your dataset
+    num_samples = len(dataframe)
+    
+    # Adjust the perplexity value accordingly
+    perplexity = min(15, num_samples - 1)
+    
+    tsne = TSNE(n_components=2, perplexity=perplexity, random_state=42, init='random', learning_rate=200)
+    vis_dims = tsne.fit_transform(matrix)
+    dataframe['x'] = vis_dims[:, 0]
+    dataframe['y'] = vis_dims[:, 1]
+    fig = px.scatter(dataframe, x='x', y='y', color='categorie', hover_data=['id'], size='count')
+    event_data = st.plotly_chart(fig, on_select="rerun", key="my_chart" )
+    # st.json(event_data)
 
 # Fonction pour vérifier la structure du dataframe
 def verify_structure(df):
@@ -89,12 +129,9 @@ with st.expander('📖 Report Prompts'):
     OpenAiApiModelReport = st.selectbox(
         "Select a model:",
         ["gpt-4o", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo", "gpt-3.5"],
-        index=1,
+        index=3,
         label_visibility="collapsed",
     )
-
-# if 'btn_analyze_clicked' not in st.session_state:
-#     st.session_state['btn_analyze_clicked'] = False
 
 btnAnalyze= st.button(
     "Analyze",
@@ -102,9 +139,6 @@ btnAnalyze= st.button(
     type="primary",
     disabled=uploaded_file is None,
     )
-
-# if btnAnalyze:
-#     st.session_state['btn_analyze_clicked'] = True
 
 client_asynchrone = openai.AsyncOpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 client_synchrone = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -127,8 +161,6 @@ if btnAnalyze:
             st.error(f"❌ Error Sending a request to {OpenAiApiModel} to get the structure of the analysis: {e}")
             st.stop()
 
-    # st.write(refJsonStructure)
-    
     async def conversationAnalysis(conversation):
         error = ""
         analysis = st.empty()
@@ -141,8 +173,6 @@ if btnAnalyze:
             try:
                 analysisPrompt = f"{context}\n{customPrompt}\n\n{jsonStructurePrompt}\n\n```json\n{json.dumps(refJsonStructure, indent=2)}\n```"
                 messages = [{"role": "system", "content": analysisPrompt}, *conversation["history"]]
-                # st.json(messages)
-                
 
                 st.write(f"Sending conversation to {OpenAiApiModel}...")
                 try:
@@ -196,17 +226,12 @@ if btnAnalyze:
 
                 st.divider()
                 for message in conversation["history"]:
-                    # if message["sender"] == projectId:
-                    #     st.chat_message("assistant").write(message["content"]["text"])
-                    # else:
-                    #     st.chat_message("user").write(message["content"]["text"])
-
                     if message["role"] == "assistant":
                         st.chat_message("assistant").write(message["content"])
                     else:
                         st.chat_message("user").write(message["content"])
 
-
+        
         analysisResultsFormated[conversationId] = formatedFlatData
         analysisResults[conversationId] = llmResponseJson
 
@@ -235,16 +260,36 @@ if btnAnalyze:
 
         reportPromptWithVerbatim = f"{customPromptReport}\n\n```json\n{json.dumps(analysisResults, indent=2)}\n```"
         reportContainer = st.container(border=True).empty()
-
         generateReport(reportPromptWithVerbatim, OpenAiApiModelReport, client_synchrone, reportContainer)
 
-        # with st.popover("Copy JSON"):
-        #     st.code(json.dumps(analysisResults, indent=2), language="JSON")
+        st.write("📊 Themes Chart:")
+        with st.spinner('Wait for it...'):
+            base_data = df.copy()
+            df_themes = base_data["theme"].str.lower().str.strip().value_counts().reset_index()
+            df_themes.columns = ["theme", "count"]
+            df_with_embedding = generate_embedding(df_themes, "theme")
+            df_with_embedding = filter_similar_embeddings(df_with_embedding)
+            csv_data = df_with_embedding.to_csv(index=False)
+            df_with_embedding = pd.read_csv(StringIO(csv_data))
+            fig = generate_tsne_chart(df_with_embedding, 'theme', size_column='count')
+            st.plotly_chart(fig, on_select="rerun", key="my_chart_1")
 
-        # st.divider()
+        st.write("📊 Conversation Chart:")
+        with st.spinner('Wait for it...'):
+            base_data = df.copy()
+            base_data['theme'] = normalize_themes(base_data['theme'])
+            df_with_embedding = generate_embedding(base_data, "conversation")
+            csv_data = df_with_embedding.to_csv(index=False)
+            df_with_embedding = pd.read_csv(StringIO(csv_data))
+            fig = generate_tsne_chart(df_with_embedding, 'theme')
+            st.plotly_chart(fig, on_select="rerun", key="my_chart_2")
 
-        # csvformatedjson = pd.DataFrame(analysisResultsFormated).T.to_csv(index=False)
-        # df = pd.read_csv(StringIO(csvformatedjson))
-        # filter_dataframe(df)
+        st.write("📊 Bubble Chart:")
+        with st.spinner('Wait for it...'):
+            data = df.copy()
+            llm_response_json = generate_bubble_chart_from_prompt(data, st.secrets["OPENAI_API_KEY"])
+            # st.write(llm_response_json)
+            # st.text(llm_response_json)
+            generate_bubble_chart(llm_response_json)
 
     st.toast("Analysis Completed", icon="✅")
