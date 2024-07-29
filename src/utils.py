@@ -1,6 +1,7 @@
 import re
 import json
-import streamlit as st
+import numpy as np
+from sklearn.manifold import TSNE
 from pandas.api.types import (
     CategoricalDtype,
     is_datetime64_any_dtype,
@@ -8,10 +9,12 @@ from pandas.api.types import (
     is_object_dtype,
 )
 import pandas as pd
-
-import pandas as pd
 import tiktoken
 import streamlit as st
+
+from ast import literal_eval
+from sklearn.manifold import TSNE
+import plotly.express as px
 
 from src.other.embeddings_utils import get_embedding
 
@@ -197,6 +200,142 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
             rowCol.write(f"➡️ Rows :blue-background[**{len(df)}**]")
             colCol.write(f"➡️ Columns :blue-background[**{len(df.columns)}**]")
             st.dataframe(df)
+
+        except KeyError:
+            rowCol, colCol = st.columns(2)
+            rowCol.write(f"➡️ Rows :blue-background[**{len(df)}**]")
+            colCol.write(f"➡️ Columns :blue-background[**{len(df.columns)}**]")
+            st.dataframe(df[df.columns[df.isnull().any()]])
+
+
+def generate_tsne_chart(dataframe, color_column, size_column=None):
+    matrix = np.array(dataframe.embedding.apply(literal_eval).to_list())
+    n_samples = matrix.shape[0]
+    perplexity = max(15, n_samples - 1)
+    tsne = TSNE(n_components=2, perplexity=perplexity, random_state=42, init='random', learning_rate=200)
+    vis_dims = tsne.fit_transform(matrix)
+    dataframe['x'] = vis_dims[:, 0]
+    dataframe['y'] = vis_dims[:, 1]
+    fig = px.scatter(dataframe, x='x', y='y', color=color_column, size=size_column, hover_data=[ 'id', 'sujet'])
+    return fig
+
+# visualize the embeding of conversations in a graphique with a select to choose the color that define the group color of each conversation
+def generate_custom_chart(df_with_embedding):
+    columns = df_with_embedding.columns
+    columns = [col.lower() for col in columns]
+    columns = list(set(columns))
+    columns.sort()
+    columns = [col for col in columns if col not in ["conversation", "date", "x", "y", "embedding", "n_tokens", "id"]]
+    # remove conversation and date columns
+    color_column = st.selectbox("Select the column to use for coloring the chart", columns)
+    with st.spinner('Wait for it...'):
+        fig = generate_tsne_chart(df_with_embedding, color_column)
+        selectedData = st.plotly_chart(fig, on_select="rerun", key="my_chart_4")
+        st.json(selectedData)
+
+@st.experimental_fragment
+def filter_chart(df: pd.DataFrame) -> pd.DataFrame:
+    modify = st.checkbox("Add filters", key="modify_checkbox_chart")
+
+    if not modify:
+        rowCol, colCol = st.columns(2)
+        rowCol.write(f"➡️ Rows :blue-background[**{len(df)}**]")
+        colCol.write(f"➡️ Columns :blue-background[**{len(df.columns)}**]")
+        st.dataframe(df)
+    else:
+
+        df = df.copy()
+
+        try:
+            for col in df.columns:
+                if is_object_dtype(df[col]):
+                    try:
+                        df[col] = pd.to_datetime(df[col])
+                    except Exception:
+                        pass
+
+                if is_datetime64_any_dtype(df[col]):
+                    df[col] = df[col].dt.tz_localize(None)
+
+            modification_container = st.container()
+
+            with modification_container:
+                to_filter_columns = st.multiselect("Filter dataframe on", df.columns, key="to_filter_by_columns")
+                for column in to_filter_columns:
+                    left, right = st.columns((1, 20))
+                    left.write("↳")
+                    if is_numeric_dtype(df[column]) and float(df[column].min()) != float(df[column].max()):
+                        _min = float(df[column].min())
+                        _max = float(df[column].max())
+                        step = (_max - _min) / 100
+                        user_num_input = right.slider(
+                            f"Values for {column}",
+                            min_value=_min,
+                            max_value=_max,
+                            value=(_min, _max),
+                            step=step,
+                        )
+                        df = df[df[column].between(*user_num_input)]
+                    elif is_datetime64_any_dtype(df[column]):
+                        user_date_input = right.date_input(
+                            f"Values for {column}",
+                            value=(
+                                df[column].min(),
+                                df[column].max(),
+                            ),
+                        )
+                        if len(user_date_input) == 2:
+                            user_date_input = tuple(map(pd.to_datetime, user_date_input))
+                            start_date, end_date = user_date_input
+                            df = df.loc[df[column].between(start_date, end_date)]
+                    elif (is_numeric_dtype(df[column])  and float(df[column].min()) == float(df[column].max())) or CategoricalDtype(df[column].fillna("None").unique()):
+                        df[column] = df[column].fillna("None")
+                        user_cat_input = right.multiselect(
+                            f"Values for {column}",
+                            df[column].unique(),
+                            default=list(df[column].unique()),
+                        )
+                        df = df[df[column].isin(user_cat_input)]
+
+                    else:
+                        user_text_input = right.text_input(
+                            f"Substring or regex in {column}",
+                        )
+                        if user_text_input:
+                            df = df[df[column].astype(str).str.contains(user_text_input)]
+
+            dfFiltered = df.copy()
+            # generate_custom_chart(dfFiltered)
+
+            columns = dfFiltered.columns
+            columns = [col.lower() for col in columns]
+            columns = list(set(columns))
+            columns.sort()
+            columns = [col for col in columns if col not in ["conversation", "date", "x", "y", "embedding", "n_tokens", "id"]]
+            # remove conversation and date columns
+            color_column = st.selectbox("Select the column to use for coloring the chart", columns, key="to_filter_by_chart")
+            with st.spinner('Wait for it...'):
+                matrix = np.array(dfFiltered.embedding.apply(literal_eval).to_list())
+                n_samples = matrix.shape[0]
+                perplexity = min(15, n_samples - 1)
+                tsne = TSNE(n_components=2, perplexity=float(perplexity), random_state=42, init='random', learning_rate=200)
+                vis_dims = tsne.fit_transform(matrix)
+                dfFiltered['x'] = vis_dims[:, 0]
+                dfFiltered['y'] = vis_dims[:, 1]
+                fig = px.scatter(dfFiltered, x='x', y='y', color=color_column, size=None, hover_data=[ 'id', 'sujet'])
+                # fig = generate_tsne_chart(dfFiltered, color_column)
+                selectedData = st.plotly_chart(fig, on_select="rerun", key="my_chart_5")
+            
+            ids = [point["customdata"][0] for point in selectedData["selection"]["points"]]
+            if ids:
+                dfFiltered = dfFiltered[dfFiltered["id"].isin(ids)]
+            
+
+
+            rowCol, colCol = st.columns(2)
+            rowCol.write(f"➡️ Rows :blue-background[**{len(dfFiltered)}**]")
+            colCol.write(f"➡️ Columns :blue-background[**{len(dfFiltered.columns)}**]")
+            st.dataframe(dfFiltered)
 
         except KeyError:
             rowCol, colCol = st.columns(2)

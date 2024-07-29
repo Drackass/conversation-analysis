@@ -5,7 +5,7 @@ import pandas as pd
 from src.components.sidebar import sidebar
 import asyncio
 from src.routes import sendMessageToLlm, sendCompletionToLlm, generateReport
-from src.utils import flatten_json, extract_json_structure, formalize_messages, extract_json_object, filter_dataframe
+from src.utils import flatten_json, extract_json_structure, formalize_messages, extract_json_object, filter_dataframe, filter_chart
 from src.prompts import prompts, context, jsonStructurePrompt, reportPrompt, refJsonStructurePrompt, protoprompt
 import openai
 import altair as alt
@@ -199,19 +199,26 @@ if btnAnalyze:
 
     asyncio.run(conversationsAnalysisTasks())
 
-    with st.expander(f'📚 Report all conversations in the imported file'):
+    with st.expander(f'📚 Conversation analysis final report'):
         formatedFlatData = {key.replace("_", " ").replace("-", " > "): value for key, value in flatData.items()}
 
-        csvformatedjson = pd.DataFrame(analysisResultsFormated).T.to_csv(index=False)
-        df = pd.read_csv(StringIO(csvformatedjson))
-        filter_dataframe(df)
-
         if showReport:
-            st.divider()
-
             reportPromptWithVerbatim = f"{customPromptReport}\n\n```json\n{json.dumps(analysisResults, indent=2)}\n```"
             reportContainer = st.container(border=True).empty()
             generateReport(reportPromptWithVerbatim, OpenAiApiModelReport, client_synchrone, reportContainer)
+            st.divider()
+
+        csvformatedjson = pd.DataFrame(analysisResultsFormated).T.to_csv(index=False)
+        df = pd.read_csv(StringIO(csvformatedjson))
+        # filter_dataframe(df)
+
+        # filter conversation
+        st.write("📊 Filter conversations:")
+        with st.spinner('Wait for it...'):
+            dfCustomChart = getDfWithEmbeding(df)
+            csvformatedjson = pd.DataFrame(dfCustomChart).to_csv(index=False)
+            df = pd.read_csv(StringIO(csvformatedjson))
+            filter_chart(df)
 
         if showthemesChart:
             st.write("📊 Themes Chart:")
@@ -246,8 +253,14 @@ if btnAnalyze:
 
         if showCustomChart:
             st.write("📊 Custom Chart:")
-            dfCustomChart = getDfWithEmbeding(df)
-            generate_custom_chart(dfCustomChart)
+            with st.spinner('Wait for it...'):
+            # dfCustomChart = getDfWithEmbeding(df)
+            # generate_custom_chart(dfCustomChart)
+                dfCustomChart = getDfWithEmbeding(df)
+                csvformatedjson = pd.DataFrame(dfCustomChart).to_csv(index=False)
+                df = pd.read_csv(StringIO(csvformatedjson))
+                filter_chart(df)
+
 
 
     if showIndividualConversationsAnalysis:
