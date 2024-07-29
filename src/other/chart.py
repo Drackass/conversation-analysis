@@ -45,8 +45,6 @@ def generateEmbedding(dataframe, column, embedding_model="text-embedding-3-small
     
     return themes
 
-
-
 def filter_similar_embeddings(themes, threshold=0.9):
     embeddings = np.array(themes["embedding"].to_list())
     similarity_matrix = np.dot(embeddings, embeddings.T)
@@ -65,7 +63,7 @@ def generate_tsne_chart(dataframe, color_column, size_column=None):
     vis_dims = tsne.fit_transform(matrix)
     dataframe['x'] = vis_dims[:, 0]
     dataframe['y'] = vis_dims[:, 1]
-    fig = px.scatter(dataframe, x='x', y='y', color=color_column, size=size_column)
+    fig = px.scatter(dataframe, x='x', y='y', color=color_column, size=size_column, hover_data=[ 'id', 'sujet'])
     return fig
 
 
@@ -154,3 +152,25 @@ def generate_bubble_chart_from_prompt(df, api_key):
     llm_response = sendCompletionToLlm(prompt, "gpt-4-turbo", client)
 
     return extract_json_object(llm_response)
+
+def getDfWithEmbeding(df):
+    df_with_embedding = generate_embedding(df, "conversation")
+    csv_data = df_with_embedding.to_csv(index=False)
+    df_with_embedding = pd.read_csv(StringIO(csv_data))
+    return df_with_embedding
+
+
+# visualize the embeding of conversations in a graphique with a select to choose the color that define the group color of each conversation
+@st.experimental_fragment
+def generate_custom_chart(df_with_embedding):
+    columns = df_with_embedding.columns
+    columns = [col.lower() for col in columns]
+    columns = list(set(columns))
+    columns.sort()
+    columns = [col for col in columns if col not in ["conversation", "date", "x", "y", "embedding", "n_tokens", "id"]]
+    # remove conversation and date columns
+    color_column = st.selectbox("Select the column to use for coloring the chart", columns)
+    with st.spinner('Wait for it...'):
+        fig = generate_tsne_chart(df_with_embedding, color_column)
+        selectedData = st.plotly_chart(fig, on_select="rerun", key="my_chart_4")
+        st.json(selectedData)
