@@ -1,14 +1,14 @@
 import streamlit as st
 import pandas as pd
-from src.components.sidebar import sidebar
+from src.components.sidebar import Sidebar
 from src.routes import sendMessageToLlm
-from src.utils import getBoxes, getMetrics, getProgress, extract_json_object
-from src.azureOpenAiApiCredentials import azureOpenAiApiCredentials
-from src.prompts import prompts
+from src.shared.utils import getBoxes, getMetrics, getProgress, extract_json_object
+from src.shared.azureOpenAiApiCredentials import azureOpenAiApiCredentials
+from src.shared.prompts import prompts
 import openai
 import numpy as np
 
-sidebar("Genii • Conversation Analysis | DatasetFile", '🧞 :violet[Genii] • Conversation Analysis', "📝 Custom Dataset")
+Sidebar("Genii • Conversation Analysis | DatasetFile", '🧞 :violet[Genii] • Conversation Analysis', "📝 Custom Dataset")
 
 # df = pd.DataFrame(
 #     [

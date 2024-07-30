@@ -2,25 +2,23 @@ from io import StringIO
 import json
 import streamlit as st
 import pandas as pd
-from src.components.sidebar import sidebar
+from src.components.sidebar import Sidebar
 import asyncio
 from src.routes import sendMessageToLlm, sendCompletionToLlm, generateReport
-from src.utils import flatten_json, extract_json_structure, formalize_messages, extract_json_object, filter_dataframe, filter_chart
-from src.prompts import prompts, context, jsonStructurePrompt, reportPrompt, refJsonStructurePrompt, protoprompt
+from src.shared.utils import flatten_json, extract_json_structure, formalize_messages, extract_json_object, filter_chart
+from src.shared.prompts import getStructureJsonPrompt, getAnalysisPrompt, ANALYSIS_TEMPLATE_PROMPT, REPORT_TEMPLATE_PROMPT
 import openai
-import altair as alt
 from vega_datasets import data
 
-import tiktoken
-from src.other.embeddings_utils import get_embedding
 import numpy as np
 from sklearn.manifold import TSNE
 from ast import literal_eval
 import plotly.express as px
-from src.other.chart import generate_embedding, filter_similar_embeddings, generate_tsne_chart, normalize_themes, generate_bubble_chart_from_prompt, generate_bubble_chart, generate_custom_chart, getDfWithEmbeding
+from src.other.chart import generate_embedding, filter_similar_embeddings, generate_tsne_chart, normalize_themes, generate_bubble_chart_from_prompt, generate_bubble_chart, getDfWithEmbeding
 import threading
+from src.shared.openaiUtils import OPENAI_API_MODELS
 
-sidebar("Genii • Conversation Analysis | DatasetFile", '🧞 :violet[Genii] • Conversation Analysis', "📄 Dataset File Analysis")
+Sidebar("Genii • Conversation Analysis | DatasetFile", '🧞 :violet[Genii] • Conversation Analysis', "📄 Dataset File Analysis")
 
 @st.experimental_fragment
 def generateChart(dfWithEmbedding):
@@ -72,12 +70,12 @@ if uploaded_file is not None:
 with st.expander('🔎 Analysis Prompts'):
     customPrompt = st.text_area(
             label="Enter a prompt to analyze the conversations:",
-            value=protoprompt,
+            value=ANALYSIS_TEMPLATE_PROMPT,
             height=300,
         )
     OpenAiApiModel = st.selectbox(
         "Select a model:",
-        ["gpt-4o", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo", "gpt-3.5"],
+        [model for model in OPENAI_API_MODELS],
         index=3,
         label_visibility="collapsed",
         key="OpenAiApiModel",
@@ -86,14 +84,14 @@ with st.expander('🔎 Analysis Prompts'):
 with st.expander('📖 Report Prompts'):
     customPromptReport = st.text_area(
             label="Enter a prompt to generate a conversations report:",
-            value=reportPrompt,
+            value=REPORT_TEMPLATE_PROMPT,
             height=300,
             key="customPromptReport",
         )
     
     OpenAiApiModelReport = st.selectbox(
         "Select a model:",
-        ["gpt-4o", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo", "gpt-3.5"],
+        [model for model in OPENAI_API_MODELS],
         index=3,
         label_visibility="collapsed",
     )
@@ -113,6 +111,10 @@ btnAnalyze= st.button(
     disabled=uploaded_file is None,
     )
 
+# analysisPrompt, OpenAiApiModelAnalysis, reportPrompt, OpenAiApiModelReport, showReport, showbubbleChart, showIndividualConversationsAnalysis, btnAnalyze = AnalysisSettings(uploaded_file is None)
+
+
+
 client_asynchrone = openai.AsyncOpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 client_synchrone = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
     
@@ -121,7 +123,7 @@ if btnAnalyze:
     refJsonFormat = ""
     with st.spinner(f"Sending a request to {OpenAiApiModel} to get the structure of the analysis..."):
         try:
-            llmResponse= sendCompletionToLlm(f"{refJsonStructurePrompt}\n{customPrompt}", OpenAiApiModel, client_synchrone)
+            llmResponse= sendCompletionToLlm(getStructureJsonPrompt(customPrompt), OpenAiApiModel, client_synchrone)
             try:
                 extractedJsonStructure = extract_json_object(llmResponse)
                 refJsonStructure = extract_json_structure(extractedJsonStructure)
@@ -142,7 +144,7 @@ if btnAnalyze:
         conversationId = conversation["id"]        
 
         try:
-            analysisPrompt = f"{context}\n{customPrompt}\n\n{jsonStructurePrompt}\n\n```json\n{json.dumps(refJsonStructure, indent=2)}\n```"
+            analysisPrompt = getAnalysisPrompt(customPrompt, refJsonStructure)
             messages = [{"role": "system", "content": analysisPrompt}, *conversation["history"]]
 
             try:

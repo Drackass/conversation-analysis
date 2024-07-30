@@ -1,21 +1,18 @@
 import asyncio
-import math
-import time
 import streamlit as st
 import datetime
 from src.routes import getAllUsers
 from src.routes import getConversationsByProjectId, getConversationById, sendMessageToLlm, sendCompletionToLlm, generateReport
-from src.utils import flatten_json, extract_json_structure, formalize_messages, extract_json_object
-from src.prompts import prompts, context, jsonStructurePrompt, reportPrompt, refJsonStructurePrompt
+from src.shared.utils import flatten_json, extract_json_structure, formalize_messages, extract_json_object
+from src.shared.prompts import prompts, context, jsonStructurePrompt, reportPrompt, refJsonStructurePrompt
 import openai
 import pandas as pd
-from src.components.sidebar import sidebar
-from src.misc import llmJson, dummyReport
+from src.components.sidebar import Sidebar
 import json
 from openai import AsyncOpenAI
 import asyncio
 
-sidebar("Genii • Conversation Analysis | Project Conversations", '🧞 :violet[Genii] • Conversation Analysis', "🔮 Project Conversations Analysis")
+Sidebar("Genii • Conversation Analysis | Project Conversations", '🧞 :violet[Genii] • Conversation Analysis', "🔮 Project Conversations Analysis")
 
 try:
     allUsers = getAllUsers()

@@ -1,10 +1,6 @@
 import requests
 import urllib.parse
 import streamlit as st
-import os
-from src.prompts import reportPrompt
-import asyncio
-from openai import AsyncOpenAI
 import aiohttp
 
 base_url = "https://genii-api.tolk.ai/v1/"

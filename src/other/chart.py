@@ -13,7 +13,7 @@ from src.other.embeddings_utils import get_embedding
 from src.routes import sendCompletionToLlm
 import openai
 import streamlit as st
-from src.utils import extract_json_structure, extract_json_object
+from src.shared.utils import extract_json_structure, extract_json_object
 
 def generate_embedding(dataframe, column, embedding_model="text-embedding-3-small", max_tokens=8000, embedding_encoding="cl100k_base", top_n=1000):
     data = dataframe.tail(top_n * 2)
