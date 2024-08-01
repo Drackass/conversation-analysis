@@ -12,7 +12,6 @@ def Sidebar(page_title, title, header):
     with st.sidebar:
         st.page_link("__main__.py", label="Introduction", icon="🧞")
         st.page_link("pages/datasetFile.py", label="Dataset File", icon="📄")
-        st.page_link("pages/customDataset.py", label="Custom Dataset", icon="📝")
         st.page_link("pages/projectConversations.py", label="Project Conversations", icon="🔮")
 
     TOLKAI_LOGO = "genii.svg"

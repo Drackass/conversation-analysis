@@ -1,13 +1,13 @@
-from turtle import st
-from shared.openaiUtils import OPENAI_API_MODELS
-from src.shared.prompts import ANALYSIS_TEMPLATE_PROMPT, REPORT_TEMPLATE_PROMPT
-
+from src.shared.openaiUtils import OPENAI_API_MODELS
+from src.shared.prompts import INSIGHTS_TO_TEMPLATE_PROMPT, REPORT_TEMPLATE_PROMPT
+import streamlit as st
 
 def AnalysisSettings(disabled=False):
+    st.divider()
     with st.expander('🔎 Analysis Prompts'):
-        analysisPrompt = st.text_area(
+        insightsToAnalysePrompt = st.text_area(
                 label="Enter a prompt to analyze the conversations:",
-                value=ANALYSIS_TEMPLATE_PROMPT,
+                value=INSIGHTS_TO_TEMPLATE_PROMPT,
                 height=300,
             )
         OpenAiApiModelAnalysis = st.selectbox(
@@ -34,8 +34,9 @@ def AnalysisSettings(disabled=False):
         )
 
     with st.expander('⚙️ Advanced Settings'):
-        showReport = st.checkbox("show report", value=True)
-        showbubbleChart = st.checkbox("show bubble chart", value=True)
+        showReport = st.checkbox("show report", value=False)
+        allowToFilterWithChart = st.checkbox("allow to filter with chart", value=False)
+        showbubbleChart = st.checkbox("show bubble chart", value=False)
         showIndividualConversationsAnalysis = st.checkbox("show individual conversations", value=True)
 
     btnAnalyze= st.button(
@@ -45,4 +46,4 @@ def AnalysisSettings(disabled=False):
         disabled=disabled,
     )
 
-    return analysisPrompt, OpenAiApiModelAnalysis, reportPrompt, OpenAiApiModelReport, showReport, showbubbleChart, showIndividualConversationsAnalysis, btnAnalyze
+    return insightsToAnalysePrompt, OpenAiApiModelAnalysis, reportPrompt, OpenAiApiModelReport, showReport, showbubbleChart, showIndividualConversationsAnalysis, btnAnalyze, allowToFilterWithChart

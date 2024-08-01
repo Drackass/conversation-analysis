@@ -23,7 +23,7 @@ Your task will be to provide an appropriate, valid and complete JSON output stru
 
 **Required Insights:**'''
 
-ANALYSIS_TEMPLATE_PROMPT = '''- categorie : (string en 1 mots max)
+INSIGHTS_TO_TEMPLATE_PROMPT = '''- categorie : (string en 1 mots max)
 - theme : (string en 2 mots max)
 - sujet : (string en 3 mots max)
 - precision : (int between 0 and 10)
@@ -34,8 +34,42 @@ ANALYSIS_TEMPLATE_PROMPT = '''- categorie : (string en 1 mots max)
 - personnalisation : (int between 0 and 10)
 - escalade : (string like "Non",  "Renvoi email",  "Renvoi téléphone")'''
 
-def getStructureJsonPrompt(analysisPrompt = ANALYSIS_TEMPLATE_PROMPT):
+def getStructureJsonPrompt(analysisPrompt = INSIGHTS_TO_TEMPLATE_PROMPT):
     return f"{GENERATE_VALIDE_JSON_STRUCTURE_PROMPT}\n{analysisPrompt}"
 
-def getAnalysisPrompt(analysisPrompt = ANALYSIS_TEMPLATE_PROMPT, refJsonStructure = {}):
+def getAnalysisPrompt(analysisPrompt = INSIGHTS_TO_TEMPLATE_PROMPT, refJsonStructure = {}):
     return f"{CONTEXT_ANALYSIS_PROMPT}\n{analysisPrompt}\n\n{ENSURE_JSON_STRUCTURE_PROMPT}\n\n```json\n{json.dumps(refJsonStructure, indent=2)}\n```"
+
+def getReportWithVerbatimPrompt(reportPrompt = REPORT_TEMPLATE_PROMPT, analysisResults = {}):
+    return f"{reportPrompt}\n\n```json\n{json.dumps(analysisResults, indent=2)}\n```"
+
+def getRerankedConversationPrompt(formated_json):
+    return '''Réorganise, syntétise et normalise les données suivantes en un arbre de catégories et thèmes généraux puis associe tous les sujets à un ou plusieurs des thèmes généré dans la structure JSON suivante:
+    ```json
+    {
+        "categorie1": {
+            "theme1": ["sujet1", "sujet2", "sujet3"],
+            "theme2": ["sujet4", "sujet5", "sujet6"],
+            "themeX": ["sujet7", "sujet8", "sujet9"],
+        },
+        "categorie2": {
+            "theme1": ["sujet10", "sujet11", "sujet12"],
+            "theme2": ["sujet13", "sujet14", "sujet15"],
+            "themeX": ["sujet16", "sujet17", "sujet18"],
+        },
+        "categorieX": {
+            "theme1": ["sujet19", "sujet20", "sujet21"],
+            "theme2": ["sujet22", "sujet23", "sujet24"],
+            "themeX": ["sujet25", "sujet26", "sujet27"],
+        },
+    }
+    ```
+
+    Données à utiliser:
+    ```json
+    ''' + formated_json + '''
+    ```
+
+    assurez-vous que les catégories et les thèmes soient générés de manière à ce qu'ils soient les plus pertinents en en générent le moins que possibles, les quelques thèmes générés doivent êtres assez larges pour anglobé le plus de sujets possible.
+    le retour de cette requête devra contenir seulement la structure JSON généré, sans inclure les données d'origine dans la réponse ni toute autre information ou formalisme supplémentaire.'''
+
