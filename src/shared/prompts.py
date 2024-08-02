@@ -23,10 +23,11 @@ Your task will be to provide an appropriate, valid and complete JSON output stru
 
 **Required Insights:**'''
 
-INSIGHTS_TO_TEMPLATE_PROMPT = '''- categorie : (string en 1 mots max)
+INITIALS_INSIGHTS_TEMPLATE_PROMPT = '''- categorie : (string en 1 mots max)
 - theme : (string en 2 mots max)
-- sujet : (string en 3 mots max)
-- precision : (int between 0 and 10)
+- sujet : (string en 3 mots max)'''
+
+INSIGHTS_TEMPLATE_PROMPT = '''- precision : (int between 0 and 10)
 - pertinence : (int between 0 and 10)
 - qualite : (int between 0 and 10)
 - richesse : (int between 0 and 10)
@@ -34,10 +35,10 @@ INSIGHTS_TO_TEMPLATE_PROMPT = '''- categorie : (string en 1 mots max)
 - personnalisation : (int between 0 and 10)
 - escalade : (string like "Non",  "Renvoi email",  "Renvoi téléphone")'''
 
-def getStructureJsonPrompt(analysisPrompt = INSIGHTS_TO_TEMPLATE_PROMPT):
+def getStructureJsonPrompt(analysisPrompt = INSIGHTS_TEMPLATE_PROMPT):
     return f"{GENERATE_VALIDE_JSON_STRUCTURE_PROMPT}\n{analysisPrompt}"
 
-def getAnalysisPrompt(analysisPrompt = INSIGHTS_TO_TEMPLATE_PROMPT, refJsonStructure = {}):
+def getAnalysisPrompt(analysisPrompt = INSIGHTS_TEMPLATE_PROMPT, refJsonStructure = {}):
     return f"{CONTEXT_ANALYSIS_PROMPT}\n{analysisPrompt}\n\n{ENSURE_JSON_STRUCTURE_PROMPT}\n\n```json\n{json.dumps(refJsonStructure, indent=2)}\n```"
 
 def getReportWithVerbatimPrompt(reportPrompt = REPORT_TEMPLATE_PROMPT, analysisResults = {}):

@@ -79,9 +79,11 @@ def main():
             sorted_analysis_results = sorted(analysisResultsJson.items(), key=lambda x: x[0])
             for analysis, result in sorted_analysis_results:
                 with st.expander(f"🔮 {analysis}.  {result['summary']}"):
+                    dfAnalytics = result['analysisData'].copy()
+                    dfAnalytics = dfAnalytics.drop(columns=[col for col in ["id", "conversation", "date"] if col in dfAnalytics.columns])
                     totalInsightCol, totalColumnCol, totalProjectRow, TotalMessageCol= st.columns(4)
-                    totalInsightCol.write(f"🔍 Insights :blue-background[**{len(analysisResultsJson)}**]")
-                    totalColumnCol.write(f"➡️ Columns :blue-background[**{len(analysisResultsFormatedForReport.columns)}**]")
+                    totalInsightCol.write(f"🔍 Insights :blue-background[**{len(dfAnalytics.columns)}**]")
+                    totalColumnCol.write(f"➡️ Columns :blue-background[**{len(result['analysisData'].columns)}**]")
                     totalProjectRow.write(f"⬇️ Row :blue-background[**1**]")
                     TotalMessageCol.write(f"💬 Messages :blue-background[**{len(result['conversation'])}**]")
                     st.dataframe(result['analysisData'])

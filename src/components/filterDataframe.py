@@ -80,6 +80,8 @@ def FilterDataframe(df: pd.DataFrame, allowToFilterWithChart=False) -> pd.DataFr
                 if len(df) < 2:
                     st.info('minimum 2 rows required to plot the chart')
                     dfToShow = df.drop(columns=[col for col in ["embedding", "n_tokens", "x", "y"] if col in df.columns])
+                    rowCol.write(f"➡️ Rows :blue-background[**{len(dfToShow)}**]")
+                    colCol.write(f"➡️ Columns :blue-background[**{len(dfToShow.columns)}**]")
                     st.dataframe(dfToShow)
                 else:
                     df = df.copy()
@@ -96,7 +98,7 @@ def FilterDataframe(df: pd.DataFrame, allowToFilterWithChart=False) -> pd.DataFr
                     
                     ids = [point["customdata"][0] for point in selectedData["selection"]["points"]]
                     if ids:
-                        df = df[df["id"].isin(ids)]
+                        dfToShow = dfToShow[dfToShow["id"].isin(ids)]
                     
                     rowCol, colCol = st.columns(2)
                     rowCol.write(f"➡️ Rows :blue-background[**{len(dfToShow)}**]")

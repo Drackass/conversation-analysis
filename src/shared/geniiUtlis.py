@@ -1,3 +1,6 @@
+import asyncio
+import datetime
+import threading
 import aiohttp
 import requests
 import urllib.parse
@@ -6,6 +9,8 @@ import streamlit as st
 import requests
 import jwt
 import time
+
+from src.shared.conversationsUtils import extractMessagesFromGeniiHistory
 
 AUTH_MANAGEMENT_BASE_URL = 'https://dev-auth-api.genii.dev/v1'
 GENII_API_BASE_URL = 'https://genii-api.tolk.ai/v1'
@@ -102,25 +107,76 @@ def getAllUsers():
         st.error(f"Error: {e}", icon='❌')
         remove_tokens()
 
-def getConversationsByProjectId(projectId, params):
+def getConversationsInfosByProjectId(projectId, params):
     try:
         encodedParams = urllib.parse.urlencode(params)
         url = f"{GENII_API_BASE_URL}/projects/{projectId}/conversations"
         response = authenticated_request('GET', f"{url}?{encodedParams}")
-        st.success(f"Fetched {len(response["data"])} conversations", icon='✅')
+        st.success(f"Fetched {len(response["data"])} Genii conversations Infos from project {projectId} successfully", icon='✅')
         return response
     except Exception as e:
         st.error(f"Error: {e}", icon='❌')
 
-def getConversationById(projectId, conversationId):
+def getConversationById(projectId, conversationId, **kwargs):
     try:
         url = f"{GENII_API_BASE_URL}/projects/{projectId}/conversations/{conversationId}/messages"
+        # access_token = get_access_token()
+        # headers = kwargs.get('headers', {})
+        # headers['Authorization'] = f'Bearer {access_token}'
+        # kwargs['headers'] = headers
+
+        # response = await requests.request("GET", url, **kwargs)
         response = authenticated_request('GET', f"{url}")
         return response
         
     except Exception as e:
         st.error(f"Error: {e}", icon='❌')
+    # try:
+    #     url = f"{GENII_API_BASE_URL}/projects/{projectId}/conversations/{conversationId}/messages"
+    #     headers = {
+    #         'Authorization': f'Bearer {get_access_token()}'
+    #     }
+    #     async with aiohttp.ClientSession() as session:
+    #         async with session.get(url, headers=headers) as response:
+    #             return await response.json()
+        
+    # except Exception as e:
+    #     st.error(f"Error: {e}", icon='❌')
 
+async def getConversationData(conversationInfosData, projectId, progress, total_conversations, lock, progress_bar, conversationsData):
+    conversationId = conversationInfosData["id"]
+    summary = conversationInfosData["summary"]
+    try:
+        conversation = getConversationById(projectId, conversationId)
+        conversationData = {
+            "id": conversationId,
+            "history": extractMessagesFromGeniiHistory(projectId, conversation["history"]),
+            "date": datetime.datetime.fromisoformat(conversationInfosData["date"]),
+            "summary": summary
+        }
+        conversationsData.append(conversationData)
+    except Exception as e:
+        st.error(f"Error Fetching conversation **{conversationId}**: {e}")
+
+    with lock:
+        progress[0] += 1
+        progress_bar.progress(progress[0] / total_conversations, text=f"Fetching conversation Data {progress[0]}/{total_conversations}")
+
+async def getConversationsDataTasks(conversationsInfosData, projectId):
+    progress_bar = st.progress(0, text="Fetching conversation Data...")
+    total_conversations = len(conversationsInfosData)
+    progress = [0]
+    tasks = []
+    conversationsData = []
+    lock = threading.Lock()
+
+    for conversationInfosData in conversationsInfosData:
+        task = getConversationData(conversationInfosData, projectId, progress, total_conversations, lock, progress_bar, conversationsData)
+        tasks.append(task)
+
+    await asyncio.gather(*tasks)
+    progress_bar.empty()
+    return conversationsData
 
 
 

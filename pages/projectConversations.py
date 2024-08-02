@@ -1,6 +1,5 @@
 import datetime
 from io import StringIO
-import requests
 import streamlit as st
 import pandas as pd
 import asyncio
@@ -16,15 +15,15 @@ from src.shared.genericUtils import extractStructureTypesFromObject, extractJson
 from src.shared.openaiUtils import generateRerankedConversations
 from src.shared.chartUtils import generateBubbleChart
 from src.shared.embeddingUtils import getDataframeWithEmbeddings, getPointsForTSNE
-from src.shared.conversationsUtils import conversationsAnalysisTasks, extractMessagesFromGeniiHistory
-from src.shared.geniiUtlis import authenticate, get_access_token, get_refresh_token, getAllUsers, authenticated_request, getConversationsByProjectId, is_token_expired, remove_tokens, set_tokens, getConversationById
+from src.shared.conversationsUtils import conversationsAnalysisTasks
+from src.shared.geniiUtlis import authenticate, getAllUsers, getConversationsInfosByProjectId, getConversationsDataTasks
 
 
 def main():
     authenticate()
         
     allUsers = getAllUsers()
-    projectId = st.selectbox("select a user", allUsers, format_func=lambda x: x["name"], index=297, key="projectIdConversations")["id"]
+    projectId = st.selectbox("select a user", allUsers, format_func=lambda x: x["name"], key="projectIdConversations")["id"]
 
     filters = st.multiselect(
     "Filters",
@@ -72,20 +71,23 @@ def main():
                 st.error(f"❌ Error Sending a request to {OpenAiApiModelAnalysis} to get the structure of the analysis: {e}")
                 st.stop()
                 
-        with st.spinner(f"Fetching conversations for project {projectId}..."):
-            jsonProjectConversations = getConversationsByProjectId(projectId, params)
+        with st.spinner(f"Fetching {conversationLimit[0]} Genii conversations Infos from project {projectId}..."):
+            conversationsInfos = getConversationsInfosByProjectId(projectId, params)
 
-        jsonConversationsData = []
-        with st.spinner(f"Extracting conversations data..."):
-            for conversationInfo in jsonProjectConversations["data"]:
-                conversation = getConversationById(projectId, conversationInfo["id"])
-                jsonConversationsData.append({
-                    "id": conversationInfo["id"],
-                    "history": extractMessagesFromGeniiHistory(projectId, conversation["history"]),
-                    "date": datetime.datetime.fromisoformat(conversationInfo["date"])
-                })
+        # conversationsData = []
+        # batch_size = 5
+        # num_batches = len(conversationsInfos["data"]) // batch_size + 1
 
-        analysisResultsFormated, analysisResults, analysisResultsJson = asyncio.run(conversationsAnalysisTasks(jsonConversationsData, insightsToAnalysePrompt, referenceJsonStructureTypes, OpenAiApiModelAnalysis))
+        # for i in range(num_batches):
+        #     batch = conversationsInfos["data"][i * batch_size : (i + 1) * batch_size]
+        #     batch_conversations_data = asyncio.run(getConversationsDataTasks(batch, projectId))
+        #     conversationsData.extend(batch_conversations_data)
+
+        # st.success(f"Fetched {len(conversationsData)} Genii Conversations data from project {projectId} successfully", icon='✅')
+        
+        conversationsData = asyncio.run(getConversationsDataTasks(conversationsInfos["data"], projectId))
+
+        analysisResultsFormated, analysisResults, analysisResultsJson = asyncio.run(conversationsAnalysisTasks(conversationsData, insightsToAnalysePrompt, referenceJsonStructureTypes, OpenAiApiModelAnalysis))
 
         with st.expander(f'📚 Conversation analysis final report'):
 

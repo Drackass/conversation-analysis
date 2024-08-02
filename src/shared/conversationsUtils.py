@@ -68,7 +68,7 @@ async def conversationAnalysis(conversation, progress, total_conversations, lock
     analysisResultsFormated[conversationId] = formatedFlatData
     analysisResults[conversationId] = llmResponseJson
     analysisResultsJson[conversationId] = {
-        "summary": "Conversation Analysis",
+        "summary": conversation["summary"] if "summary" in conversation else "Conversation Analysis",
         "analysisData": pd.DataFrame([formatedFlatData], index=[conversationId]),
         "conversation": conversation["history"]
     }

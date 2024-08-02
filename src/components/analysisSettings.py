@@ -1,5 +1,5 @@
 from src.shared.openaiUtils import OPENAI_API_MODELS
-from src.shared.prompts import INSIGHTS_TO_TEMPLATE_PROMPT, REPORT_TEMPLATE_PROMPT
+from src.shared.prompts import INSIGHTS_TEMPLATE_PROMPT, REPORT_TEMPLATE_PROMPT, INITIALS_INSIGHTS_TEMPLATE_PROMPT
 import streamlit as st
 
 def AnalysisSettings(disabled=False):
@@ -7,7 +7,7 @@ def AnalysisSettings(disabled=False):
     with st.expander('🔎 Analysis Prompts'):
         insightsToAnalysePrompt = st.text_area(
                 label="Enter a prompt to analyze the conversations:",
-                value=INSIGHTS_TO_TEMPLATE_PROMPT,
+                value=INSIGHTS_TEMPLATE_PROMPT,
                 height=300,
             )
         OpenAiApiModelAnalysis = st.selectbox(
@@ -17,6 +17,8 @@ def AnalysisSettings(disabled=False):
             label_visibility="collapsed",
             key="OpenAiApiModel",
         )
+
+    insightsToAnalysePrompt = f"{INITIALS_INSIGHTS_TEMPLATE_PROMPT}\n{insightsToAnalysePrompt}"
 
     with st.expander('📖 Report Prompts'):
         reportPrompt = st.text_area(
