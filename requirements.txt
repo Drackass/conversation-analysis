@@ -1,2 +1,6 @@
 openai
-aiohttp
+plotly
+streamlit-agraph==0.0.45
+tiktoken
+scikit-learn==1.5.1
+PyJWT==2.8.0

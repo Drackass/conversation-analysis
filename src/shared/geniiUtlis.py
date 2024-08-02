@@ -1,13 +1,13 @@
 import asyncio
 import datetime
 import threading
-import aiohttp
 import requests
 import urllib.parse
 import streamlit as st
 import streamlit as st
 import requests
 import jwt
+from jwt.exceptions import ExpiredSignatureError, DecodeError
 import time
 
 from src.shared.conversationsUtils import extractMessagesFromGeniiHistory
@@ -55,9 +55,9 @@ def is_token_expired(token):
         decoded_token = jwt.decode(token, options={"verify_signature": False})
         exp = decoded_token.get('exp', 0)
         return exp <= time.time()
-    except jwt.ExpiredSignatureError:
+    except ExpiredSignatureError:
         return True
-    except jwt.DecodeError:
+    except DecodeError:
         return True
 
 def refresh_access_token():
@@ -112,7 +112,7 @@ def getConversationsInfosByProjectId(projectId, params):
         encodedParams = urllib.parse.urlencode(params)
         url = f"{GENII_API_BASE_URL}/projects/{projectId}/conversations"
         response = authenticated_request('GET', f"{url}?{encodedParams}")
-        st.success(f"Fetched {len(response["data"])} Genii conversations Infos from project {projectId} successfully", icon='✅')
+        st.success(f"Fetched {len(response['data'])} Genii conversations Infos from project {projectId} successfully", icon='✅')
         return response
     except Exception as e:
         st.error(f"Error: {e}", icon='❌')
