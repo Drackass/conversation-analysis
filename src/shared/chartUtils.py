@@ -1,5 +1,7 @@
 from streamlit_agraph import agraph, Node, Edge, Config
+import streamlit as st
 
+@st.experimental_fragment
 def generateBubbleChart(data):
     nodes = []
     edges = []

@@ -18,6 +18,9 @@ from src.shared.embeddingUtils import getDataframeWithEmbeddings, getPointsForTS
 from src.shared.conversationsUtils import conversationsAnalysisTasks
 from src.shared.geniiUtlis import authenticate, getAllUsers, getConversationsInfosByProjectId, getConversationsDataTasks, get_access_token, get_refresh_token
 
+# @st.experimental_fragment
+# def showIndividualConversationsAnalysis(conversationsData, analysisResultsJson):
+    
 
 def main():
     authenticate()
@@ -74,22 +77,22 @@ def main():
         with st.spinner(f"Fetching {conversationLimit[0]} Genii conversations Infos from project {projectId}..."):
             conversationsInfos = getConversationsInfosByProjectId(projectId, params)
 
-        # conversationsData = []
-        # batch_size = 5
-        # num_batches = len(conversationsInfos["data"]) // batch_size + 1
+        conversationsData = []
+        batch_size = 10
+        num_batches = len(conversationsInfos["data"]) // batch_size + 1
 
-        # for i in range(num_batches):
-        #     batch = conversationsInfos["data"][i * batch_size : (i + 1) * batch_size]
-        #     batch_conversations_data = asyncio.run(getConversationsDataTasks(batch, projectId))
-        #     conversationsData.extend(batch_conversations_data)
+        for i in range(num_batches):
+            batch = conversationsInfos["data"][i * batch_size : (i + 1) * batch_size]
+            batch_conversations_data = asyncio.run(getConversationsDataTasks(batch, projectId))
+            conversationsData.extend(batch_conversations_data)
 
         # st.success(f"Fetched {len(conversationsData)} Genii Conversations data from project {projectId} successfully", icon='✅')
         
-        conversationsData = asyncio.run(getConversationsDataTasks(conversationsInfos["data"], projectId))
+        # conversationsData = asyncio.run(getConversationsDataTasks(conversationsInfos["data"], projectId))
 
         analysisResultsFormated, analysisResults, analysisResultsJson = asyncio.run(conversationsAnalysisTasks(conversationsData, insightsToAnalysePrompt, referenceJsonStructureTypes, OpenAiApiModelAnalysis))
 
-        with st.expander(f'📚 Conversation analysis final report'):
+        with st.expander(f'📚 Conversation analysis final report', expanded=True):
 
             analysisResultsFormatedForReport = pd.read_csv(StringIO(pd.DataFrame(analysisResultsFormated).T.to_csv(index=False)))
 
@@ -109,9 +112,12 @@ def main():
                     data = analysisResultsFormatedForReport.copy()
                     llm_response_json = generateRerankedConversations(data)
                     generateBubbleChart(llm_response_json)
+    
+        
 
         if showIndividualConversationsAnalysis:
             st.divider()
+
             sorted_analysis_results = sorted(analysisResultsJson.items(), key=lambda x: x[0])
             for analysis, result in sorted_analysis_results:
                 with st.expander(f"🔮 {analysis}.  {result['summary']}"):

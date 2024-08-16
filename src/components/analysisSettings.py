@@ -13,7 +13,7 @@ def AnalysisSettings(disabled=False):
         OpenAiApiModelAnalysis = st.selectbox(
             "Select a model:",
             [model for model in OPENAI_API_MODELS],
-            index=3,
+            index=0,
             label_visibility="collapsed",
             key="OpenAiApiModel",
         )
@@ -31,7 +31,7 @@ def AnalysisSettings(disabled=False):
         OpenAiApiModelReport = st.selectbox(
             "Select a model:",
             [model for model in OPENAI_API_MODELS],
-            index=3,
+            index=0,
             label_visibility="collapsed",
         )
 

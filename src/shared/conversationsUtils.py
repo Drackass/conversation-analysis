@@ -33,7 +33,6 @@ def extractMessagesFromGeniiHistory(projectId, history):
             messages.append({"role": "user", "content": message["content"]["text"]})
     return messages
 
-
 async def conversationAnalysis(conversation, progress, total_conversations, lock, progress_bar, insightsToAnalysePrompt, referenceJsonStructureTypes, OpenAiApiModelAnalysis, analysisResultsFormated, analysisResults, analysisResultsJson):
     conversationId = conversation["id"]        
 

@@ -10,18 +10,21 @@ import plotly.express as px
 
 @st.experimental_fragment
 def FilterDataframe(df: pd.DataFrame, allowToFilterWithChart=False) -> pd.DataFrame:
-    modify = st.checkbox("Add filters", key="modify_checkbox_chart")
+    modify = st.checkbox("Add filters", key="modify_checkbox_chart", value=True)
+
+    colomns = df.drop(columns=[col for col in ["embedding", "n_tokens", "x", "y"] if col in df.columns]).columns
 
     if not modify:
         rowCol, colCol = st.columns(2)
         dfToShow = df.drop(columns=[col for col in ["embedding", "n_tokens", "x", "y"] if col in df.columns])
+        dfToShow["date"] = pd.to_datetime(dfToShow["date"]).dt.strftime("%d/%m/%Y")
         rowCol.write(f"➡️ Rows :blue-background[**{len(dfToShow)}**]")
         colCol.write(f"➡️ Columns :blue-background[**{len(dfToShow.columns)}**]")
         st.dataframe(dfToShow)
     else:
         df = df.copy()
         try:
-            for col in df.columns:
+            for col in colomns:
                 if is_object_dtype(df[col]):
                     try:
                         df[col] = pd.to_datetime(df[col])
@@ -80,12 +83,14 @@ def FilterDataframe(df: pd.DataFrame, allowToFilterWithChart=False) -> pd.DataFr
                 if len(df) < 2:
                     st.info('minimum 2 rows required to plot the chart')
                     dfToShow = df.drop(columns=[col for col in ["embedding", "n_tokens", "x", "y"] if col in df.columns])
+                    dfToShow["date"] = pd.to_datetime(dfToShow["date"]).dt.strftime("%d/%m/%Y")
                     rowCol.write(f"➡️ Rows :blue-background[**{len(dfToShow)}**]")
                     colCol.write(f"➡️ Columns :blue-background[**{len(dfToShow.columns)}**]")
                     st.dataframe(dfToShow)
                 else:
                     df = df.copy()
                     dfToShow = df.drop(columns=[col for col in ["embedding", "n_tokens", "x", "y"] if col in df.columns])
+                    dfToShow["date"] = pd.to_datetime(dfToShow["date"]).dt.strftime("%d/%m/%Y")
                     dfFilterColumns = df.drop(columns=[col for col in ["embedding", "n_tokens", "x", "y", "conversation", "date", "id"] if col in df.columns]).columns
                     dfFilterColumns = [col.lower() for col in dfFilterColumns]
                     dfFilterColumns = list(set(dfFilterColumns))
@@ -107,11 +112,13 @@ def FilterDataframe(df: pd.DataFrame, allowToFilterWithChart=False) -> pd.DataFr
 
             else:
                 dfToShow = df.drop(columns=[col for col in ["embedding", "n_tokens", "x", "y"] if col in df.columns])
+                dfToShow["date"] = pd.to_datetime(dfToShow["date"]).dt.strftime("%d/%m/%Y")
                 st.dataframe(dfToShow)
 
         except KeyError:
             rowCol, colCol = st.columns(2)
             dfToShow = df.drop(columns=[col for col in ["embedding", "n_tokens", "x", "y"] if col in df.columns])
+            dfToShow["date"] = pd.to_datetime(dfToShow["date"]).dt.strftime("%d/%m/%Y")
             rowCol.write(f"➡️ Rows :blue-background[**{len(dfToShow)}**]")
             colCol.write(f"➡️ Columns :blue-background[**{len(dfToShow.columns)}**]")
             st.dataframe(dfToShow[dfToShow.columns[dfToShow.isnull().any()]])

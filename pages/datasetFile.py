@@ -53,7 +53,7 @@ def main():
                 
         analysisResultsFormated, analysisResults, analysisResultsJson = asyncio.run(conversationsAnalysisTasks(jsonConversationsData, insightsToAnalysePrompt, referenceJsonStructureTypes, OpenAiApiModelAnalysis))
 
-        with st.expander(f'📚 Conversation analysis final report'):
+        with st.expander(f'📚 Conversation analysis final report', expanded=True):
 
             analysisResultsFormatedForReport = pd.read_csv(StringIO(pd.DataFrame(analysisResultsFormated).T.to_csv(index=False)))
 

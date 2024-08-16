@@ -8,13 +8,13 @@ ASYNCRONOUS_CLIENT = openai.AsyncOpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 SYNCRONOUS_CLIENT = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 OPENAI_API_MODELS = [
+    "gpt-4o-mini",
     "gpt-4o", 
     "gpt-4-turbo",
     "gpt-4",
-    "gpt-3.5-turbo",
-    "gpt-3.5",
     "gpt-4o",
-    "gpt-4o-mini",
+    # "gpt-3.5-turbo",
+    # "gpt-3.5",
 ]
 
 async def sendMessageToLlm(messages, model_name, asyncronous=False):
