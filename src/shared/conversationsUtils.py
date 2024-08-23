@@ -24,6 +24,27 @@ def extractJsonConversationsDataFromTable(df):
         conversation['history'].append({'role': role, 'content': content})
     return structured_data
 
+
+def extractJsonGeniiConversationsDataFromTable(df):
+    structured_data = []
+    for _, row in df.iterrows():
+        conversationId = str(row['conversationId'])
+        date = str(row['date'])
+        content = str(row['content.value'])
+        try:
+            parsed_date = pd.to_datetime(date, format='%b %d, %Y @ %H:%M:%S.%f')
+            formatted_date = parsed_date.strftime('%d/%m/%Y')
+        except Exception as e:
+            st.error(f"Error parsing date '{date}': {e}")
+            continue
+        conversation = next((conv for conv in structured_data if conv['id'] == conversationId), None)
+        if conversation is None:
+            conversation = {'id': conversationId, 'history': [], 'date': formatted_date}
+            structured_data.append(conversation)
+        conversation['history'].append({'role': 'system', 'content': content})
+    return structured_data
+
+
 def extractMessagesFromGeniiHistory(projectId, history):
     messages = []
     for message in history:

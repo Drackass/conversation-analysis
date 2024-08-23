@@ -9,9 +9,9 @@ from sklearn.manifold import TSNE
 def generateEmbedding(dataframe, column, embedding_model="text-embedding-3-small", max_tokens=8000, embedding_encoding="cl100k_base", top_n=1000):
     data = dataframe.tail(top_n * 2)
     encoding = tiktoken.get_encoding(embedding_encoding)
-    data["n_tokens"] = data[column].apply(lambda x: len(encoding.encode(x)))
+    data["n_tokens"] = data[column].apply(lambda x: len(encoding.encode(str(x))))
     data = data[data.n_tokens <= max_tokens].tail(top_n)
-    data["embedding"] = data[column].apply(lambda x: get_embedding(x, model=embedding_model))
+    data["embedding"] = data[column].apply(lambda x: get_embedding(str(x), model=embedding_model))
     return data
 
 def getDataframeWithEmbeddings(df, column):
