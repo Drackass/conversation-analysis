@@ -66,7 +66,7 @@ def messagesToString(messages):
     return ''.join(formatted_output)
 
 
-def get_embedding(text: str, model="text-embedding-3-small", **kwargs) -> List[float]:
+async def get_embedding(text: str, model="text-embedding-3-small", **kwargs) -> List[float]:
     text = text.replace("\n", " ")
-    response = SYNCRONOUS_CLIENT.embeddings.create(input=[text], model=model, **kwargs)
+    response = await ASYNCRONOUS_CLIENT.embeddings.create(input=[text], model=model, **kwargs)
     return response.data[0].embedding

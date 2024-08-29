@@ -13,11 +13,13 @@ from src.shared.openaiUtils import sendCompletionToLlm, generateReport
 from src.shared.genericUtils import extractStructureTypesFromObject, extractJsonObjectFromText, verifyStructureTable
 from src.shared.openaiUtils import generateRerankedConversations
 from src.shared.chartUtils import generateBubbleChart
-from src.shared.embeddingUtils import getDataframeWithEmbeddings, getPointsForTSNE
+from src.shared.embeddingUtils import getDataframeWithEmbeddings, getPointsForTSNE, getDataframeWithEmbeddingsTask
 from src.shared.conversationsUtils import extractJsonGeniiConversationsDataFromTable, conversationsAnalysisTasks
-
+from src.shared.staticData import CONVERSATIONS_DATA, REFERENCE_STRUCTURE_ANALYSIS, ANALYSIS_RESULTS_FORMATED, REPORT_ANALYSIS, ANALYSIS_RESULTS, ANALYSIS_RESULTS_JSON, JSON_DATAFRAME_WITH_EMBEDDINGS, REORDERED_TOPICS
 
 def main():
+
+
     uploadedFile = st.file_uploader("Choose a file")
 
     if uploadedFile is None:
@@ -33,13 +35,15 @@ def main():
     else:
         st.error("The file structure is incorrect. Please ensure it has 'ID', 'ROLE', 'CONTENT' and 'DATE' columns.")
 
-    insightsToAnalysePrompt, OpenAiApiModelAnalysis, reportPrompt, OpenAiApiModelReport, showReport, showbubbleChart, showIndividualConversationsAnalysis, btnAnalyze, allowToFilterWithChart = AnalysisSettings(uploadedFile is None)
+    disableAnalysis = uploadedFile is None
+
+    insightsToAnalysePrompt, OpenAiApiModelAnalysis, reportPrompt, OpenAiApiModelReport, showReport, showbubbleChart, showIndividualConversationsAnalysis, btnAnalyze, allowToFilterWithChart = AnalysisSettings(disableAnalysis)
 
     if btnAnalyze:
         st.divider()
         with st.spinner(f"Sending a request to {OpenAiApiModelAnalysis} to get the structure of the analysis..."):
             try:
-                llmResponse= sendCompletionToLlm(getStructureJsonPrompt(insightsToAnalysePrompt), OpenAiApiModelAnalysis, asyncronous=False)
+                llmResponse = sendCompletionToLlm(getStructureJsonPrompt(insightsToAnalysePrompt), OpenAiApiModelAnalysis, asyncronous=False)
                 try:
                     extractedJsonObject = extractJsonObjectFromText(llmResponse)
                     referenceJsonStructureTypes = extractStructureTypesFromObject(extractedJsonObject)
@@ -50,20 +54,21 @@ def main():
             except Exception as e:
                 st.error(f"❌ Error Sending a request to {OpenAiApiModelAnalysis} to get the structure of the analysis: {e}")
                 st.stop()
-                
-        analysisResultsFormated, analysisResults, analysisResultsJson = asyncio.run(conversationsAnalysisTasks(jsonConversationsData, insightsToAnalysePrompt, referenceJsonStructureTypes, OpenAiApiModelAnalysis))
 
+        analysisResultsFormated, analysisResults, analysisResultsJson = asyncio.run(conversationsAnalysisTasks(jsonConversationsData, insightsToAnalysePrompt, referenceJsonStructureTypes, OpenAiApiModelAnalysis))
         with st.expander(f'📚 Conversation analysis final report', expanded=True):
 
             analysisResultsFormatedForReport = pd.read_csv(StringIO(pd.DataFrame(analysisResultsFormated).T.to_csv(index=False)))
 
             if showReport:
                 generateReport(getReportWithVerbatimPrompt(reportPrompt, analysisResults), OpenAiApiModelReport)
+                
 
             st.write("📊 Conversations Analysis:")
             with st.spinner('Wait for it...'):
                 if allowToFilterWithChart:
-                    analysisResultsFormatedForReport = pd.read_csv(StringIO(pd.DataFrame(getDataframeWithEmbeddings(analysisResultsFormatedForReport, 'conversation')).to_csv(index=False)))
+                    dataframeWithEmbeddings = asyncio.run(getDataframeWithEmbeddingsTask(analysisResultsFormatedForReport, 'conversation'))
+                    analysisResultsFormatedForReport = pd.read_csv(StringIO(pd.DataFrame(dataframeWithEmbeddings).to_csv(index=False)))
                     analysisResultsFormatedForReport = getPointsForTSNE(analysisResultsFormatedForReport)
                 FilterDataframe(analysisResultsFormatedForReport, allowToFilterWithChart)
 
@@ -79,14 +84,15 @@ def main():
             sorted_analysis_results = sorted(analysisResultsJson.items(), key=lambda x: x[0])
             for analysis, result in sorted_analysis_results:
                 with st.expander(f"🔮 {analysis}.  {result['summary']}"):
-                    dfAnalytics = result['analysisData'].copy()
+                    dataframeAnalysis = pd.DataFrame([result['analysisData']], index=[analysis])
+                    dfAnalytics = pd.DataFrame(dataframeAnalysis).copy()
                     dfAnalytics = dfAnalytics.drop(columns=[col for col in ["id", "conversation", "date"] if col in dfAnalytics.columns])
                     totalInsightCol, totalColumnCol, totalProjectRow, TotalMessageCol= st.columns(4)
                     totalInsightCol.write(f"🔍 Insights :blue-background[**{len(dfAnalytics.columns)}**]")
-                    totalColumnCol.write(f"➡️ Columns :blue-background[**{len(result['analysisData'].columns)}**]")
+                    totalColumnCol.write(f"➡️ Columns :blue-background[**{len(dataframeAnalysis.columns)}**]")
                     totalProjectRow.write(f"⬇️ Row :blue-background[**1**]")
                     TotalMessageCol.write(f"💬 Messages :blue-background[**{len(result['conversation'])}**]")
-                    st.dataframe(result['analysisData'])
+                    st.dataframe(dataframeAnalysis)
 
                     for message in result["conversation"]:
                         if message["role"] == "assistant":

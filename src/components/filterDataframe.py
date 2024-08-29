@@ -99,6 +99,8 @@ def FilterDataframe(df: pd.DataFrame, allowToFilterWithChart=False) -> pd.DataFr
                     color_column = st.selectbox("Select the column to use for coloring the chart", dfFilterColumns, key="to_filter_by_chart")
                     with st.spinner('Wait for it...'):
                         fig = px.scatter(df, x='x', y='y', color=color_column, size=None, hover_data=[ 'id', 'sujet'])
+                        fig.update_xaxes(visible=False)
+                        fig.update_yaxes(visible=False)
                         selectedData = st.plotly_chart(fig, on_select="rerun", key="my_chart_5")
                     
                     ids = [point["customdata"][0] for point in selectedData["selection"]["points"]]

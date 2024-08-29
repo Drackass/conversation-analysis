@@ -41,7 +41,7 @@ def extractJsonGeniiConversationsDataFromTable(df):
         if conversation is None:
             conversation = {'id': conversationId, 'history': [], 'date': formatted_date}
             structured_data.append(conversation)
-        conversation['history'].append({'role': 'system', 'content': content})
+        conversation['history'].append({'role': 'user', 'content': content})
     return structured_data
 
 
@@ -89,7 +89,8 @@ async def conversationAnalysis(conversation, progress, total_conversations, lock
     analysisResults[conversationId] = llmResponseJson
     analysisResultsJson[conversationId] = {
         "summary": conversation["summary"] if "summary" in conversation else "Conversation Analysis",
-        "analysisData": pd.DataFrame([formatedFlatData], index=[conversationId]),
+        "analysisData": formatedFlatData,
+        # "analysisData": pd.DataFrame([formatedFlatData], index=[conversationId]),
         "conversation": conversation["history"]
     }
 

@@ -13,7 +13,7 @@ from src.shared.openaiUtils import sendCompletionToLlm, generateReport
 from src.shared.genericUtils import extractStructureTypesFromObject, extractJsonObjectFromText, verifyStructureTable
 from src.shared.openaiUtils import generateRerankedConversations
 from src.shared.chartUtils import generateBubbleChart
-from src.shared.embeddingUtils import getDataframeWithEmbeddings, getPointsForTSNE
+from src.shared.embeddingUtils import getDataframeWithEmbeddings, getDataframeWithEmbeddingsTask, getPointsForTSNE
 from src.shared.conversationsUtils import extractJsonConversationsDataFromTable, conversationsAnalysisTasks
 
 
@@ -63,7 +63,11 @@ def main():
             st.write("📊 Conversations Analysis:")
             with st.spinner('Wait for it...'):
                 if allowToFilterWithChart:
-                    analysisResultsFormatedForReport = pd.read_csv(StringIO(pd.DataFrame(getDataframeWithEmbeddings(analysisResultsFormatedForReport, 'conversation')).to_csv(index=False)))
+                    # analysisResultsFormatedForReport = pd.read_csv(StringIO(pd.DataFrame(getDataframeWithEmbeddings(analysisResultsFormatedForReport, 'conversation')).to_csv(index=False)))
+                    
+                    dataframeWithEmbeddingsresult = asyncio.run(getDataframeWithEmbeddingsTask(analysisResultsFormatedForReport, 'conversation'))
+                    analysisResultsFormatedForReport = pd.read_csv(StringIO(pd.DataFrame(dataframeWithEmbeddingsresult).to_csv(index=False)))
+                    st.dataframe(analysisResultsFormatedForReport)
                     analysisResultsFormatedForReport = getPointsForTSNE(analysisResultsFormatedForReport)
                 FilterDataframe(analysisResultsFormatedForReport, allowToFilterWithChart)
 
