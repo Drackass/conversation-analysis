@@ -37,25 +37,25 @@ def main():
 
     disableAnalysis = uploadedFile is None
 
-    insightsToAnalysePrompt, OpenAiApiModelAnalysis, reportPrompt, OpenAiApiModelReport, showReport, showbubbleChart, showIndividualConversationsAnalysis, btnAnalyze, allowToFilterWithChart = AnalysisSettings(disableAnalysis)
+    insightsToAnalysePrompt, openAiApiModelAnalysis, reportPrompt, OpenAiApiModelReport, showReport, showbubbleChart, showIndividualConversationsAnalysis, btnAnalyze, allowToFilterWithChart = AnalysisSettings(disableAnalysis)
 
     if btnAnalyze:
         st.divider()
-        with st.spinner(f"Sending a request to {OpenAiApiModelAnalysis} to get the structure of the analysis..."):
+        with st.spinner(f"Sending a request to {openAiApiModelAnalysis} to get the structure of the analysis..."):
             try:
-                llmResponse = sendCompletionToLlm(getStructureJsonPrompt(insightsToAnalysePrompt), OpenAiApiModelAnalysis, asyncronous=False)
+                llmResponse = sendCompletionToLlm(getStructureJsonPrompt(insightsToAnalysePrompt), openAiApiModelAnalysis, asyncronous=False)
                 try:
                     extractedJsonObject = extractJsonObjectFromText(llmResponse)
                     referenceJsonStructureTypes = extractStructureTypesFromObject(extractedJsonObject)
-                    st.success(f"Received the structure of the analysis from {OpenAiApiModelAnalysis} successfully", icon='✅')
+                    st.success(f"Received the structure of the analysis from {openAiApiModelAnalysis} successfully", icon='✅')
                 except Exception as e:
-                    st.error(f"❌ Error Parsing {OpenAiApiModelAnalysis} response in json: {e}")
+                    st.error(f"❌ Error Parsing {openAiApiModelAnalysis} response in json: {e}")
                     st.stop()
             except Exception as e:
-                st.error(f"❌ Error Sending a request to {OpenAiApiModelAnalysis} to get the structure of the analysis: {e}")
+                st.error(f"❌ Error Sending a request to {openAiApiModelAnalysis} to get the structure of the analysis: {e}")
                 st.stop()
 
-        analysisResultsFormated, analysisResults, analysisResultsJson = asyncio.run(conversationsAnalysisTasks(jsonConversationsData, insightsToAnalysePrompt, referenceJsonStructureTypes, OpenAiApiModelAnalysis))
+        analysisResultsFormated, analysisResults, analysisResultsJson = asyncio.run(conversationsAnalysisTasks(jsonConversationsData, insightsToAnalysePrompt, referenceJsonStructureTypes, openAiApiModelAnalysis))
         with st.expander(f'📚 Conversation analysis final report', expanded=True):
 
             analysisResultsFormatedForReport = pd.read_csv(StringIO(pd.DataFrame(analysisResultsFormated).T.to_csv(index=False)))

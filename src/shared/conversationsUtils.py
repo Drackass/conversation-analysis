@@ -54,7 +54,7 @@ def extractMessagesFromGeniiHistory(projectId, history):
             messages.append({"role": "user", "content": message["content"]["text"]})
     return messages
 
-async def conversationAnalysis(conversation, progress, total_conversations, lock, progress_bar, insightsToAnalysePrompt, referenceJsonStructureTypes, OpenAiApiModelAnalysis, analysisResultsFormated, analysisResults, analysisResultsJson):
+async def conversationAnalysis(conversation, progress, total_conversations, lock, progress_bar, insightsToAnalysePrompt, referenceJsonStructureTypes, openAiApiModelAnalysis, analysisResultsFormated, analysisResults, analysisResultsJson):
     conversationId = conversation["id"]        
 
     try:
@@ -62,14 +62,14 @@ async def conversationAnalysis(conversation, progress, total_conversations, lock
         messages = [{"role": "system", "content": analysisPrompt}, *conversation["history"]]
 
         try:
-            llmResponse = await sendMessageToLlm(messages, OpenAiApiModelAnalysis, asyncronous=True)
+            llmResponse = await sendMessageToLlm(messages, openAiApiModelAnalysis, asyncronous=True)
             try:
                 llmResponseJson = extractJsonObjectFromText(llmResponse)
             except Exception as e:
-                error = f"Error Parsing {OpenAiApiModelAnalysis} response in json: {e}"
+                error = f"Error Parsing {openAiApiModelAnalysis} response in json: {e}"
 
         except Exception as e:
-            error = f"Error Sending conversation **{conversationId}** to {OpenAiApiModelAnalysis}: {e}"
+            error = f"Error Sending conversation **{conversationId}** to {openAiApiModelAnalysis}: {e}"
     
     except Exception as e:
         error = f"Error Fetching conversation **{conversationId}**: {e}"
@@ -98,7 +98,7 @@ async def conversationAnalysis(conversation, progress, total_conversations, lock
         progress[0] += 1
         progress_bar.progress(progress[0] / total_conversations, text=f"Analyzing Conversation {progress[0]}/{total_conversations}")
 
-async def conversationsAnalysisTasks(jsonConversationsData, insightsToAnalysePrompt, referenceJsonStructureTypes, OpenAiApiModelAnalysis):
+async def conversationsAnalysisTasks(jsonConversationsData, insightsToAnalysePrompt, referenceJsonStructureTypes, openAiApiModelAnalysis):
     progress_bar = st.progress(0, text="Analyzing Conversations...")
     total_conversations = len(jsonConversationsData)
     progress = [0]
@@ -109,7 +109,7 @@ async def conversationsAnalysisTasks(jsonConversationsData, insightsToAnalysePro
     lock = threading.Lock()
     
     for conversation in jsonConversationsData:
-        task = conversationAnalysis(conversation, progress, total_conversations, lock, progress_bar, insightsToAnalysePrompt, referenceJsonStructureTypes, OpenAiApiModelAnalysis, analysisResultsFormated, analysisResults, analysisResultsJson)
+        task = conversationAnalysis(conversation, progress, total_conversations, lock, progress_bar, insightsToAnalysePrompt, referenceJsonStructureTypes, openAiApiModelAnalysis, analysisResultsFormated, analysisResults, analysisResultsJson)
         tasks.append(task)
     await asyncio.gather(*tasks)
     st.success(f"{total_conversations} Conversations Analyzed", icon='✅')

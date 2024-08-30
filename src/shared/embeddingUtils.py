@@ -66,7 +66,7 @@ async def getDataframeWithEmbeddingsTask(dataframe, columnToEmbed):
     
 #     # for conversation type code exemple to adapte for generrating embeding for each conversation tupple in the dataframe
 #     # for conversation in jsonConversationsData:
-#     #     task = conversationAnalysis(conversation, progress, total_conversations, lock, progress_bar, insightsToAnalysePrompt, referenceJsonStructureTypes, OpenAiApiModelAnalysis, analysisResultsFormated, analysisResults, analysisResultsJson)
+#     #     task = conversationAnalysis(conversation, progress, total_conversations, lock, progress_bar, insightsToAnalysePrompt, referenceJsonStructureTypes, openAiApiModelAnalysis, analysisResultsFormated, analysisResults, analysisResultsJson)
 #     #     tasks.append(task)
 
 #     for index, row in analysisResultsFormatedForReport.iterrows():

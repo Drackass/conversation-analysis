@@ -10,7 +10,7 @@ def AnalysisSettings(disabled=False):
                 value=INSIGHTS_TEMPLATE_PROMPT,
                 height=300,
             )
-        OpenAiApiModelAnalysis = st.selectbox(
+        openAiApiModelAnalysis = st.selectbox(
             "Select a model:",
             [model for model in OPENAI_API_MODELS],
             index=0,
@@ -48,4 +48,4 @@ def AnalysisSettings(disabled=False):
         disabled=disabled,
     )
 
-    return insightsToAnalysePrompt, OpenAiApiModelAnalysis, reportPrompt, OpenAiApiModelReport, showReport, showbubbleChart, showIndividualConversationsAnalysis, btnAnalyze, allowToFilterWithChart
+    return insightsToAnalysePrompt, openAiApiModelAnalysis, reportPrompt, OpenAiApiModelReport, showReport, showbubbleChart, showIndividualConversationsAnalysis, btnAnalyze, allowToFilterWithChart
